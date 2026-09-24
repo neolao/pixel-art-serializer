@@ -1,5 +1,5 @@
 ---
-status: in_progress
+status: done
 depends_on: [011]
 ---
 # Detect Real Pixel Grid Size
