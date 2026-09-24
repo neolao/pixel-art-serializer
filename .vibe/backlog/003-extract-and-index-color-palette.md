@@ -1,5 +1,6 @@
 ---
 status: todo
+depends_on: [011]
 ---
 # Extract And Index Color Palette
 
