@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 ---
 # Wire Image Upload Input
 
