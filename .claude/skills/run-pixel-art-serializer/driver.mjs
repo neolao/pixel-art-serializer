@@ -5,14 +5,15 @@
 // Usage: node .claude/skills/run-pixel-art-serializer/driver.mjs
 // (run with the Vite dev server already up — see SKILL.md)
 
-import { chromium } from "playwright-core";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
+import { chromium } from "playwright-core";
 
 const SKILL_DIR = path.dirname(new URL(import.meta.url).pathname);
 const FIXTURES_DIR = path.join(SKILL_DIR, "fixtures");
-const SHOT_DIR = process.env.SCREENSHOT_DIR || "/tmp/pixel-art-serializer-shots";
+const SHOT_DIR =
+	process.env.SCREENSHOT_DIR || "/tmp/pixel-art-serializer-shots";
 fs.mkdirSync(SHOT_DIR, { recursive: true });
 
 const DEFAULT_URL = process.env.APP_URL || "http://localhost:5173";
@@ -49,7 +50,9 @@ const COMMANDS = {
 	async upload(args) {
 		const p = requirePage();
 		const [selector, fixture] = args.split(/\s+/);
-		const fixturePath = fs.existsSync(fixture) ? fixture : path.join(FIXTURES_DIR, fixture);
+		const fixturePath = fs.existsSync(fixture)
+			? fixture
+			: path.join(FIXTURES_DIR, fixture);
 		await p.setInputFiles(selector, fixturePath);
 		console.log("uploaded", fixturePath, "into", selector);
 	},
@@ -83,7 +86,12 @@ const COMMANDS = {
 	async text(sel) {
 		const p = requirePage();
 		console.log(
-			await p.evaluate((s) => (s ? document.querySelector(s) : document.body)?.innerText ?? "(null)", sel || null),
+			await p.evaluate(
+				(s) =>
+					(s ? document.querySelector(s) : document.body)?.innerText ??
+					"(null)",
+				sel || null,
+			),
 		);
 	},
 
@@ -114,11 +122,16 @@ const COMMANDS = {
 		await p.waitForTimeout(300);
 		const nonImage = await readState();
 
-		await p.setInputFiles("#image-input", path.join(FIXTURES_DIR, "corrupt.png"));
+		await p.setInputFiles(
+			"#image-input",
+			path.join(FIXTURES_DIR, "corrupt.png"),
+		);
 		await p.waitForTimeout(1500); // decode-failure path is async (img.onerror)
 		const corruptImage = await readState();
 
-		console.log(JSON.stringify({ validImage, nonImage, corruptImage }, null, 2));
+		console.log(
+			JSON.stringify({ validImage, nonImage, corruptImage }, null, 2),
+		);
 	},
 
 	async quit() {
@@ -133,7 +146,11 @@ const COMMANDS = {
 };
 
 const stdin = fs.createReadStream(null, { fd: fs.openSync("/dev/stdin", "r") });
-const rl = readline.createInterface({ input: stdin, output: process.stdout, prompt: "driver> " });
+const rl = readline.createInterface({
+	input: stdin,
+	output: process.stdout,
+	prompt: "driver> ",
+});
 
 rl.on("line", async (line) => {
 	const [cmd, ...rest] = line.trim().split(/\s+/);
@@ -159,5 +176,7 @@ rl.on("close", async () => {
 	process.exit(0);
 });
 
-console.log("pixel-art-serializer driver — 'help' for commands, 'launch' to start");
+console.log(
+	"pixel-art-serializer driver — 'help' for commands, 'launch' to start",
+);
 rl.prompt();
