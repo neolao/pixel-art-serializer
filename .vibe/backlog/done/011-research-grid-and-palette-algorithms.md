@@ -1,5 +1,5 @@
 ---
-status: in_progress
+status: done
 ---
 # Research Grid And Palette Algorithms
 
