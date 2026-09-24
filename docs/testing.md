@@ -13,7 +13,10 @@ npm run test
 - **`image-loader.test.ts`** — the file-type check (accepts raster images, rejects non-images and SVG) and the file-reading promise, including its rejection path, by mocking `FileReader`.
 - **`upload.test.ts`** — the upload orchestration logic directly (not through DOM events): the nominal path, cancelling the file picker, recovering from a previous error, and rejecting non-image and SVG files.
 - **`main.test.ts`** — one end-to-end style test that dispatches a real `change` event on the actual input to confirm the wiring between the page and the upload logic works, on top of the existing test confirming the page mounts its elements.
+- **`grid-detection.test.ts`** — `detectPixelGridSize` against synthetic pixel data: a uniform upscaled grid, a grid with non-square cells, a photo-like image with no consistent grid, a tiny image already at native resolution, and two invalid-input cases (mismatched pixel data length, zero-sized image).
 
 ## What's intentionally not covered by automated tests
 
 A file that has an image MIME type (e.g. `.png`) but is not actually a valid, decodable image is a real case the app handles (it shows an error instead of a broken image icon), but it is **not** covered by an automated test. jsdom's `HTMLImageElement` never fires `load` or `error` for a `data:` URL, so a test that waits for that event would hang, and mocking the event away would only prove the mock works — not the real decode-failure handling. This path was verified manually in a real browser instead. See `.vibe/decisions/001-corrupt-image-verified-at-runtime.md` for the full reasoning.
+
+`pixel-data.ts`'s `extractPixelData` (reads an image's pixels via a canvas) is verified the same way, for the same kind of reason: jsdom has no real 2D canvas, so `getContext("2d")` returns `null` there. It was verified against real sample images in a real browser instead. See `.vibe/decisions/003-canvas-pixel-extraction-verified-at-runtime.md`.

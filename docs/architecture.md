@@ -2,13 +2,14 @@
 
 # Architecture
 
-The app is a small, framework-free TypeScript site built with Vite. It has three source modules, each with one job.
+The app is a small, framework-free TypeScript site built with Vite. The upload flow has three source modules, each with one job; a separate, not-yet-connected pair of modules detects an image's pixel grid.
 
 ```mermaid
 flowchart LR
     main["main.ts (entry point)"] -->|wires the change event| upload["upload.ts (upload orchestration)"]
     upload -->|reads the file| loader["image-loader.ts (file reading + validation)"]
     upload -->|updates| dom["preview / error DOM elements"]
+    pixeldata["pixel-data.ts (canvas pixel extraction)"] -.not yet wired in.-> griddetect["grid-detection.ts (grid size detection)"]
 ```
 
 ## Modules
@@ -19,9 +20,18 @@ flowchart LR
 
 **`image-loader.ts`** — Two pure functions with no DOM dependency: `isSupportedImageType` (rejects non-images and SVG, since the grid/palette detection features built later need raster pixel data) and `readImageFile` (wraps `FileReader` in a promise that resolves with a data URL or rejects on read failure).
 
+**`grid-detection.ts`** — Pure function `detectPixelGridSize`: scans up to 24 full rows and 24 full columns of an image's pixel data, pools same-color segment lengths per axis, and takes the most frequent length as the logical pixel size. Returns the detected pixel size plus the image's width/height expressed in logical pixels rather than raw pixels. No DOM dependency, so it's tested with synthetic pixel data.
+
+**`pixel-data.ts`** — `extractPixelData`: reads a loaded `<img>`'s real pixel data via an offscreen canvas (`drawImage` + `getImageData`), at the image's natural resolution. Not covered by automated tests — see [docs/testing.md](testing.md).
+
+Neither `grid-detection.ts` nor `pixel-data.ts` is called from `main.ts`/`upload.ts` yet; a later feature wires them into the upload flow and displays the result.
+
 ## Data flow
 
+**Upload/preview (live):**
 1. The user picks a file in the `#image-input` field.
 2. `main.ts`'s change handler reads `input.files[0]` and calls `upload.ts`.
 3. `upload.ts` validates the type via `image-loader.ts`; on success it reads the file (also via `image-loader.ts`) and sets the preview image's `src` to the resulting data URL; on failure it shows an inline error and hides the preview.
 4. If the file passed the type check but isn't actually a valid image (a corrupted file), the preview `<img>`'s own `onerror` handler catches the browser's decode failure and swaps back to the error message.
+
+**Grid detection (built, not yet connected):** given a loaded `<img>`, `pixel-data.ts` reads its raw pixels via canvas, and `grid-detection.ts` turns that into a logical pixel size and grid width/height.
