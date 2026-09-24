@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Chose and documented the algorithms used to detect a pixel-art image's real pixel grid size and to extract its color palette, based on a research spike comparing candidate approaches against sample images.
+
 ## [0.1.0] - 2026-09-24
 
 ### Added
