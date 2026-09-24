@@ -4,11 +4,13 @@
 ## Modules
 - [`modules/app.md`](modules/app.md) — bootstraps the page and wires the file input to the upload module
 - [`modules/upload.md`](modules/upload.md) — validates, reads and previews a selected image file
+- [`modules/grid-detection.md`](modules/grid-detection.md) — detects an image's logical pixel grid size; not yet wired into the app
 
 ## Observed patterns
 - Vite entry point pattern: `src/main.ts` queries `#app` and sets its `innerHTML` directly (no framework, no virtual DOM)
 - DOM orchestration functions take their target elements as plain arguments (e.g. `handleImageSelection(file, elements)`) instead of querying the DOM themselves, to stay unit-testable without mounting the whole page
 - File-reading/validation logic (`image-loader.ts`) is kept free of DOM access so it can be tested in isolation from `upload.ts`'s DOM orchestration
+- Pure algorithmic logic (`grid-detection.ts`) is kept free of DOM/canvas access so it can be unit-tested with synthetic pixel data; the DOM-dependent extraction step (`pixel-data.ts`) is verified only through the `run` skill in a real browser, since jsdom has no real 2D canvas (see `decisions/003-canvas-pixel-extraction-verified-at-runtime.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models
