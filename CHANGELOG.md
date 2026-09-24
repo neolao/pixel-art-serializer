@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-24
+
 ### Added
 
 - Implemented extraction and indexing of an image's color palette: the distinct colors used at the logical pixel grid level, with near-identical colors caused by compression artifacts folded into a single palette entry, plus the total distinct color count. Not yet connected to the upload screen.
@@ -23,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/neolao/pixel-art-serializer/releases/tag/v0.1.0
