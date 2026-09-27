@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 depends_on: [001, 002, 003, 004, 005, 006]
 ---
 # Set Up GitHub Pages Deployment
