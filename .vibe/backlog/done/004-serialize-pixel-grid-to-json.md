@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 depends_on: [002, 003]
 ---
 # Serialize Pixel Grid To JSON
