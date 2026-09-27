@@ -46,6 +46,8 @@ export interface PaletteCallbacks {
 	onSelect: (index: number) => void;
 	onRemove: (index: number) => void;
 	onModify: (index: number, hex: string) => void;
+	onToggleMerge?: (index: number) => void;
+	onMergeInto?: (index: number) => void;
 }
 
 export function renderPalette(
@@ -53,11 +55,12 @@ export function renderPalette(
 	palette: readonly SerializedPaletteColor[],
 	activeIndex: number | null,
 	callbacks: PaletteCallbacks,
+	mergeSelection?: ReadonlySet<number>,
 ): void {
 	container.innerHTML = "";
 	for (const color of palette) {
 		container.appendChild(
-			makeSwatch(color, color.index === activeIndex, callbacks),
+			makeSwatch(color, color.index === activeIndex, callbacks, mergeSelection),
 		);
 	}
 	container.hidden = palette.length === 0;
@@ -148,13 +151,16 @@ function makeSwatch(
 	color: SerializedPaletteColor,
 	isActive: boolean,
 	callbacks: PaletteCallbacks,
+	mergeSelection: ReadonlySet<number> | undefined,
 ): HTMLElement {
 	const swatch = document.createElement("div");
 	swatch.className = isActive ? "swatch active" : "swatch";
 
 	const box = document.createElement("span");
 	box.className = "swatch-box";
-	box.addEventListener("click", () => callbacks.onSelect(color.index));
+	if (!mergeSelection) {
+		box.addEventListener("click", () => callbacks.onSelect(color.index));
+	}
 
 	const fill = document.createElement("span");
 	fill.className = "swatch-fill";
@@ -167,24 +173,57 @@ function makeSwatch(
 
 	swatch.append(box, label);
 
-	if (color.index !== TRANSPARENT_INDEX) {
-		const modify = document.createElement("input");
-		modify.type = "color";
-		modify.className = "swatch-modify";
-		modify.value = color.hex;
-		modify.addEventListener("input", () =>
-			callbacks.onModify(color.index, modify.value),
-		);
-
-		const remove = document.createElement("button");
-		remove.type = "button";
-		remove.className = "swatch-remove";
-		remove.setAttribute("aria-label", `Remove color ${color.hex}`);
-		remove.textContent = "×";
-		remove.addEventListener("click", () => callbacks.onRemove(color.index));
-
-		swatch.append(modify, remove);
+	if (color.index === TRANSPARENT_INDEX) {
+		return swatch;
 	}
+
+	if (mergeSelection) {
+		const isSelected = mergeSelection.has(color.index);
+
+		const checkbox = document.createElement("input");
+		checkbox.type = "checkbox";
+		checkbox.className = "swatch-merge-select";
+		checkbox.checked = isSelected;
+		checkbox.setAttribute("aria-label", `Select color ${color.hex} to merge`);
+		checkbox.addEventListener("change", () =>
+			callbacks.onToggleMerge?.(color.index),
+		);
+		swatch.append(checkbox);
+
+		if (isSelected && mergeSelection.size >= 2) {
+			const mergeInto = document.createElement("button");
+			mergeInto.type = "button";
+			mergeInto.className = "swatch-merge-into";
+			mergeInto.setAttribute(
+				"aria-label",
+				`Merge selected colors into ${color.hex}`,
+			);
+			mergeInto.textContent = "Merge here";
+			mergeInto.addEventListener("click", () =>
+				callbacks.onMergeInto?.(color.index),
+			);
+			swatch.append(mergeInto);
+		}
+
+		return swatch;
+	}
+
+	const modify = document.createElement("input");
+	modify.type = "color";
+	modify.className = "swatch-modify";
+	modify.value = color.hex;
+	modify.addEventListener("input", () =>
+		callbacks.onModify(color.index, modify.value),
+	);
+
+	const remove = document.createElement("button");
+	remove.type = "button";
+	remove.className = "swatch-remove";
+	remove.setAttribute("aria-label", `Remove color ${color.hex}`);
+	remove.textContent = "×";
+	remove.addEventListener("click", () => callbacks.onRemove(color.index));
+
+	swatch.append(modify, remove);
 
 	return swatch;
 }

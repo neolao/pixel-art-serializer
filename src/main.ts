@@ -38,6 +38,7 @@ if (app) {
       <p class="palette-add">
         <input id="add-color-input" type="color" value="#000000" />
         <button id="add-color-button" type="button">Add color</button>
+        <button id="merge-toggle-button" type="button">Merge colors</button>
       </p>
       <a id="download-json" download hidden>Download JSON</a>
     </main>
@@ -58,6 +59,9 @@ if (app) {
 	const addColorInput = app.querySelector<HTMLInputElement>("#add-color-input");
 	const addColorButton =
 		app.querySelector<HTMLButtonElement>("#add-color-button");
+	const mergeToggleButton = app.querySelector<HTMLButtonElement>(
+		"#merge-toggle-button",
+	);
 
 	if (
 		input &&
@@ -69,7 +73,8 @@ if (app) {
 		downloadLink &&
 		confidence &&
 		addColorInput &&
-		addColorButton
+		addColorButton &&
+		mergeToggleButton
 	) {
 		const resultElements: ResultElements = {
 			reconstructionFigure,
@@ -84,6 +89,7 @@ if (app) {
 			downloadLink,
 			addColorInput,
 			addColorButton,
+			mergeToggleButton,
 		};
 		const editor = createReconstructionEditor(editorElements);
 		let currentFileName: string | undefined;

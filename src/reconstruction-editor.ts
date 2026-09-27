@@ -1,5 +1,6 @@
 import {
 	addPaletteColor,
+	mergePaletteColors,
 	modifyPaletteColor,
 	recolorPixel,
 	removePaletteColor,
@@ -17,6 +18,7 @@ export interface EditorElements {
 	downloadLink: HTMLAnchorElement;
 	addColorInput: HTMLInputElement;
 	addColorButton: HTMLButtonElement;
+	mergeToggleButton: HTMLButtonElement;
 }
 
 export interface ReconstructionEditor {
@@ -83,36 +85,72 @@ export function createReconstructionEditor(
 	let serialization: PixelArtSerialization | null = null;
 	let sourceFileName: string | undefined;
 	let activeColorIndex: number | null = null;
+	let mergeMode = false;
+	let mergeSelection = new Set<number>();
 
 	function rerender(): void {
 		if (!serialization) return;
 		renderReconstruction(elements.reconstructionCanvas, serialization);
 		elements.reconstructionCanvas.classList.toggle(
 			"painting",
-			activeColorIndex !== null,
+			!mergeMode && activeColorIndex !== null,
 		);
-		renderPalette(elements.palette, serialization.palette, activeColorIndex, {
-			onSelect: (index) => {
-				activeColorIndex = activeColorIndex === index ? null : index;
-				rerender();
+		renderPalette(
+			elements.palette,
+			serialization.palette,
+			activeColorIndex,
+			{
+				onSelect: (index) => {
+					activeColorIndex = activeColorIndex === index ? null : index;
+					rerender();
+				},
+				onRemove: (index) => {
+					if (!serialization) return;
+					serialization = removePaletteColor(serialization, index);
+					if (activeColorIndex === index) activeColorIndex = null;
+					rerender();
+				},
+				onModify: (index, hex) => {
+					if (!serialization) return;
+					const existingAlpha =
+						serialization.palette.find((c) => c.index === index)?.alpha ?? 255;
+					serialization = modifyPaletteColor(serialization, index, {
+						hex,
+						alpha: existingAlpha,
+					});
+					rerender();
+				},
+				onToggleMerge: (index) => {
+					if (mergeSelection.has(index)) {
+						mergeSelection.delete(index);
+					} else {
+						mergeSelection.add(index);
+					}
+					rerender();
+				},
+				onMergeInto: (survivorIndex) => {
+					if (!serialization) return;
+					const discarded = [...mergeSelection].filter(
+						(index) => index !== survivorIndex,
+					);
+					serialization = mergePaletteColors(
+						serialization,
+						[...mergeSelection],
+						survivorIndex,
+					);
+					if (
+						activeColorIndex !== null &&
+						discarded.includes(activeColorIndex)
+					) {
+						activeColorIndex = survivorIndex;
+					}
+					mergeMode = false;
+					mergeSelection = new Set();
+					rerender();
+				},
 			},
-			onRemove: (index) => {
-				if (!serialization) return;
-				serialization = removePaletteColor(serialization, index);
-				if (activeColorIndex === index) activeColorIndex = null;
-				rerender();
-			},
-			onModify: (index, hex) => {
-				if (!serialization) return;
-				const existingAlpha =
-					serialization.palette.find((c) => c.index === index)?.alpha ?? 255;
-				serialization = modifyPaletteColor(serialization, index, {
-					hex,
-					alpha: existingAlpha,
-				});
-				rerender();
-			},
-		});
+			mergeMode ? mergeSelection : undefined,
+		);
 		renderDownloadLink(elements.downloadLink, serialization, sourceFileName);
 	}
 
@@ -120,7 +158,7 @@ export function createReconstructionEditor(
 		elements.reconstructionCanvas,
 		() => serialization,
 		(pixelPosition) => {
-			if (!serialization || activeColorIndex === null) return;
+			if (!serialization || mergeMode || activeColorIndex === null) return;
 			serialization = recolorPixel(
 				serialization,
 				pixelPosition,
@@ -139,17 +177,28 @@ export function createReconstructionEditor(
 		rerender();
 	});
 
+	elements.mergeToggleButton.addEventListener("click", () => {
+		if (!serialization) return;
+		mergeMode = !mergeMode;
+		mergeSelection = new Set();
+		rerender();
+	});
+
 	return {
 		load(newSerialization, newSourceFileName) {
 			serialization = newSerialization;
 			sourceFileName = newSourceFileName;
 			activeColorIndex = null;
+			mergeMode = false;
+			mergeSelection = new Set();
 			rerender();
 		},
 		reset() {
 			serialization = null;
 			sourceFileName = undefined;
 			activeColorIndex = null;
+			mergeMode = false;
+			mergeSelection = new Set();
 		},
 	};
 }

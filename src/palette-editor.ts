@@ -60,6 +60,33 @@ export function modifyPaletteColor(
 	};
 }
 
+export function mergePaletteColors(
+	serialization: PixelArtSerialization,
+	indices: readonly number[],
+	resultIndex: number,
+): PixelArtSerialization {
+	if (indices.length < 2) return serialization;
+	if (indices.includes(TRANSPARENT_INDEX)) return serialization;
+	if (!indices.includes(resultIndex)) return serialization;
+	const existingIndices = new Set(serialization.palette.map((c) => c.index));
+	if (!indices.every((index) => existingIndices.has(index))) {
+		return serialization;
+	}
+
+	const discardedIndices = new Set(
+		indices.filter((index) => index !== resultIndex),
+	);
+	return {
+		...serialization,
+		palette: serialization.palette.filter(
+			(c) => !discardedIndices.has(c.index),
+		),
+		pixels: serialization.pixels.map((p) =>
+			discardedIndices.has(p) ? resultIndex : p,
+		),
+	};
+}
+
 export function recolorPixel(
 	serialization: PixelArtSerialization,
 	pixelPosition: number,

@@ -122,12 +122,14 @@ function makeEditorElements() {
 	const addColorInput = document.createElement("input");
 	addColorInput.type = "color";
 	const addColorButton = document.createElement("button");
+	const mergeToggleButton = document.createElement("button");
 	return {
 		reconstructionCanvas,
 		palette,
 		downloadLink,
 		addColorInput,
 		addColorButton,
+		mergeToggleButton,
 	};
 }
 
@@ -229,5 +231,124 @@ describe("createReconstructionEditor", () => {
 		elements.addColorButton.click();
 
 		expect(elements.palette.querySelectorAll(".swatch")).toHaveLength(3);
+	});
+
+	describe("merge mode", () => {
+		it("enters merge mode on toggle, showing checkboxes instead of modify/remove controls", () => {
+			const elements = makeEditorElements();
+			const editor = createReconstructionEditor(elements);
+			editor.load(makeSerialization(), "cat.png");
+
+			elements.mergeToggleButton.click();
+
+			expect(
+				elements.palette.querySelectorAll(".swatch-merge-select"),
+			).toHaveLength(2);
+			expect(elements.palette.querySelectorAll(".swatch-modify")).toHaveLength(
+				0,
+			);
+		});
+
+		it("merges checked colors into the chosen one, reflected in the reconstruction's downloaded JSON", () => {
+			const elements = makeEditorElements();
+			const editor = createReconstructionEditor(elements);
+			editor.load(makeSerialization(), "cat.png");
+			elements.mergeToggleButton.click();
+
+			const checkboxes = [
+				...elements.palette.querySelectorAll<HTMLInputElement>(
+					".swatch-merge-select",
+				),
+			];
+			for (const checkbox of checkboxes) {
+				checkbox.checked = true;
+				checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+			}
+			const mergeIntoButtons = [
+				...elements.palette.querySelectorAll<HTMLButtonElement>(
+					".swatch-merge-into",
+				),
+			];
+			mergeIntoButtons[1].click();
+
+			const href = elements.downloadLink.getAttribute("href") ?? "";
+			const json = JSON.parse(
+				decodeURIComponent(
+					href.slice("data:application/json;charset=utf-8,".length),
+				),
+			);
+			expect(json.palette.map((c: { index: number }) => c.index)).toEqual([
+				0, 2,
+			]);
+			expect(json.pixels).toEqual([2, 2, 2, 2]);
+		});
+
+		it("switches the active paint color to the merge survivor when the active color is merged away", () => {
+			const elements = makeEditorElements();
+			const editor = createReconstructionEditor(elements);
+			editor.load(makeSerialization(), "cat.png");
+
+			const redBox = [...elements.palette.querySelectorAll(".swatch-box")][1];
+			(redBox as HTMLElement).click();
+			elements.mergeToggleButton.click();
+			const checkboxes = [
+				...elements.palette.querySelectorAll<HTMLInputElement>(
+					".swatch-merge-select",
+				),
+			];
+			for (const checkbox of checkboxes) {
+				checkbox.checked = true;
+				checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+			}
+			const mergeIntoButtons = [
+				...elements.palette.querySelectorAll<HTMLButtonElement>(
+					".swatch-merge-into",
+				),
+			];
+			mergeIntoButtons[1].click(); // survivor is index 2
+
+			expect(
+				elements.palette.querySelector(".active .swatch-hex")?.textContent,
+			).toBe("#00ff00");
+		});
+
+		it("ignores a color-box click on a swatch while merge mode is active", () => {
+			const elements = makeEditorElements();
+			const editor = createReconstructionEditor(elements);
+			editor.load(makeSerialization(), "cat.png");
+			const redBox = [...elements.palette.querySelectorAll(".swatch-box")][1];
+			(redBox as HTMLElement).click();
+			elements.mergeToggleButton.click();
+
+			const greenBox = [
+				...elements.palette.querySelectorAll(".swatch-box"),
+			][2] as HTMLElement;
+			greenBox.click();
+
+			expect(
+				elements.palette.querySelector(".active .swatch-hex")?.textContent,
+			).toBe("#ff0000");
+		});
+
+		it("exits merge mode without changing anything when toggled off before merging", () => {
+			const elements = makeEditorElements();
+			const editor = createReconstructionEditor(elements);
+			editor.load(makeSerialization(), "cat.png");
+			elements.mergeToggleButton.click();
+			const checkboxes = [
+				...elements.palette.querySelectorAll<HTMLInputElement>(
+					".swatch-merge-select",
+				),
+			];
+			checkboxes[0].checked = true;
+			checkboxes[0].dispatchEvent(new Event("change", { bubbles: true }));
+
+			elements.mergeToggleButton.click();
+
+			expect(elements.palette.querySelectorAll(".swatch")).toHaveLength(3);
+			expect(
+				elements.palette.querySelectorAll(".swatch-merge-select"),
+			).toHaveLength(0);
+		});
 	});
 });

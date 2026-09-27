@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Users can now manually merge two or more palette colors into one they choose from the selection, for cases where automatic grouping doesn't produce the result they want. Every pixel pointing at a merged-away color is reassigned to the surviving color, reflected in the palette, the reconstruction, and the downloadable JSON. If the color currently active for painting gets merged away, painting continues seamlessly with the surviving color.
+
 ## [0.9.0] - 2026-09-27
 
 ### Added

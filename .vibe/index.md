@@ -26,7 +26,8 @@
 - A palette always reserves its first index for full transparency, synthesized during extraction even when the source image has none, so manual editing can always erase a pixel to transparent (see `decisions/011-palette-always-reserves-transparent-index-zero.md`)
 - Palette entries carry a stable `index` decoupled from array position: editing operations (`palette-editor.ts`) never compact the array on removal or reuse a freed position on add, and rendering code (`result.ts`'s `renderReconstruction`) looks colors up by that `index`, not by position
 - Manual "remove a color" is modeled as erasing its pixels to the reserved transparent entry, deliberately distinct from the automatic-reduction/manual-merge features which reassign to the nearest perceptually-similar color instead (see `decisions/012-remove-palette-color-erases-to-transparent.md`)
-- A stateful DOM controller (`reconstruction-editor.ts`) is created once at startup and reset/reloaded per upload, rather than re-created per upload, so its event listeners on persistent elements (canvas, add-color button) never stack across successive images
+- A stateful DOM controller (`reconstruction-editor.ts`) is created once at startup and reset/reloaded per upload, rather than re-created per upload, so its event listeners on persistent elements (canvas, add-color button, merge-toggle button) never stack across successive images
+- A palette-editing operation offered on multiple selected colors at once (manual merge) uses a dedicated toggleable selection mode with checkboxes, rather than overloading the single-color click target already used for painting/recolor/remove, and preserves rather than clears unrelated state (the active paint color) when entering that mode (see `decisions/013-palette-merge-as-distinct-selection-mode.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models

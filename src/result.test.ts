@@ -40,7 +40,13 @@ function readDownloadedJson(link: HTMLAnchorElement): unknown {
 }
 
 function noopCallbacks(): PaletteCallbacks {
-	return { onSelect: vi.fn(), onRemove: vi.fn(), onModify: vi.fn() };
+	return {
+		onSelect: vi.fn(),
+		onRemove: vi.fn(),
+		onModify: vi.fn(),
+		onToggleMerge: vi.fn(),
+		onMergeInto: vi.fn(),
+	};
 }
 
 describe("renderPalette", () => {
@@ -195,6 +201,102 @@ describe("renderPalette", () => {
 
 		expect(callbacks.onModify).toHaveBeenCalledWith(1, "#123456");
 		expect(callbacks.onSelect).not.toHaveBeenCalled();
+	});
+
+	describe("merge selection mode", () => {
+		const colors: SerializedPaletteColor[] = [
+			{ index: 0, hex: "#000000", alpha: 0 },
+			{ index: 1, hex: "#ff0000", alpha: 255 },
+			{ index: 2, hex: "#00ff00", alpha: 255 },
+		];
+
+		it("renders a checkbox instead of modify/remove controls on non-transparent swatches", () => {
+			const container = document.createElement("div");
+
+			renderPalette(container, colors, null, noopCallbacks(), new Set());
+
+			const swatches = [...container.querySelectorAll(".swatch")];
+			expect(swatches[1].querySelector(".swatch-merge-select")).not.toBeNull();
+			expect(swatches[1].querySelector(".swatch-modify")).toBeNull();
+			expect(swatches[1].querySelector(".swatch-remove")).toBeNull();
+		});
+
+		it("renders no checkbox on the reserved transparent swatch", () => {
+			const container = document.createElement("div");
+
+			renderPalette(container, colors, null, noopCallbacks(), new Set());
+
+			const swatches = [...container.querySelectorAll(".swatch")];
+			expect(swatches[0].querySelector(".swatch-merge-select")).toBeNull();
+		});
+
+		it("reflects the given merge selection as checked checkboxes", () => {
+			const container = document.createElement("div");
+
+			renderPalette(container, colors, null, noopCallbacks(), new Set([1, 2]));
+
+			const checkboxes = [
+				...container.querySelectorAll<HTMLInputElement>(".swatch-merge-select"),
+			];
+			expect(checkboxes.map((c) => c.checked)).toEqual([true, true]);
+		});
+
+		it("calls onToggleMerge with a swatch's index when its checkbox changes", () => {
+			const container = document.createElement("div");
+			const callbacks = noopCallbacks();
+
+			renderPalette(container, colors, null, callbacks, new Set());
+
+			const checkbox = container.querySelectorAll<HTMLInputElement>(
+				".swatch-merge-select",
+			)[0];
+			checkbox.checked = true;
+			checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+
+			expect(callbacks.onToggleMerge).toHaveBeenCalledWith(1);
+		});
+
+		it("offers no merge-into action when fewer than two colors are selected", () => {
+			const container = document.createElement("div");
+
+			renderPalette(container, colors, null, noopCallbacks(), new Set([1]));
+
+			expect(container.querySelectorAll(".swatch-merge-into")).toHaveLength(0);
+		});
+
+		it("offers a merge-into action only on the selected swatches once two or more are selected", () => {
+			const container = document.createElement("div");
+
+			renderPalette(container, colors, null, noopCallbacks(), new Set([1, 2]));
+
+			expect(container.querySelectorAll(".swatch-merge-into")).toHaveLength(2);
+		});
+
+		it("calls onMergeInto with the swatch's index when its merge-into action is used", () => {
+			const container = document.createElement("div");
+			const callbacks = noopCallbacks();
+
+			renderPalette(container, colors, null, callbacks, new Set([1, 2]));
+
+			const button =
+				container.querySelectorAll<HTMLButtonElement>(".swatch-merge-into")[1];
+			button.click();
+
+			expect(callbacks.onMergeInto).toHaveBeenCalledWith(2);
+		});
+
+		it("leaves normal single-swatch behavior unchanged when no merge selection is given", () => {
+			const container = document.createElement("div");
+
+			renderPalette(container, colors, null, noopCallbacks());
+
+			expect(container.querySelectorAll(".swatch-merge-select")).toHaveLength(
+				0,
+			);
+			expect(
+				container.querySelectorAll(".swatch-modify").length,
+			).toBeGreaterThan(0);
+		});
 	});
 });
 

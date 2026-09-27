@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	addPaletteColor,
+	mergePaletteColors,
 	modifyPaletteColor,
 	recolorPixel,
 	removePaletteColor,
@@ -17,6 +18,20 @@ function makeSerialization(): PixelArtSerialization {
 			{ index: 2, hex: "#00ff00", alpha: 255 },
 		],
 		pixels: [1, 2],
+	};
+}
+
+function makeThreeColorSerialization(): PixelArtSerialization {
+	return {
+		gridWidth: 3,
+		gridHeight: 1,
+		palette: [
+			{ index: 0, hex: "#000000", alpha: 0 },
+			{ index: 1, hex: "#ff0000", alpha: 255 },
+			{ index: 2, hex: "#00ff00", alpha: 255 },
+			{ index: 3, hex: "#0000ff", alpha: 255 },
+		],
+		pixels: [1, 2, 3],
 	};
 }
 
@@ -101,6 +116,68 @@ describe("modifyPaletteColor", () => {
 		});
 
 		expect(result.palette).toEqual(original.palette);
+	});
+});
+
+describe("mergePaletteColors", () => {
+	it("merges two selected colors into one, reassigning every pixel pointing at the discarded color", () => {
+		const result = mergePaletteColors(makeSerialization(), [1, 2], 1);
+
+		expect(result.palette.map((c) => c.index)).toEqual([0, 1]);
+		expect(result.pixels).toEqual([1, 1]);
+	});
+
+	it("keeps the survivor's own color, not a computed blend of the merged colors", () => {
+		const result = mergePaletteColors(makeSerialization(), [1, 2], 2);
+
+		expect(result.palette.find((c) => c.index === 2)).toEqual({
+			index: 2,
+			hex: "#00ff00",
+			alpha: 255,
+		});
+	});
+
+	it("merges three or more colors at once into the chosen survivor", () => {
+		const result = mergePaletteColors(
+			makeThreeColorSerialization(),
+			[1, 2, 3],
+			3,
+		);
+
+		expect(result.palette.map((c) => c.index)).toEqual([0, 3]);
+		expect(result.pixels).toEqual([3, 3, 3]);
+	});
+
+	it("does nothing when fewer than two colors are selected", () => {
+		const original = makeSerialization();
+
+		const result = mergePaletteColors(original, [1], 1);
+
+		expect(result).toEqual(original);
+	});
+
+	it("refuses to merge when the reserved transparent color is part of the selection", () => {
+		const original = makeSerialization();
+
+		const result = mergePaletteColors(original, [0, 1], 0);
+
+		expect(result).toEqual(original);
+	});
+
+	it("does nothing when the chosen survivor is not part of the selection", () => {
+		const original = makeSerialization();
+
+		const result = mergePaletteColors(original, [1, 2], 99);
+
+		expect(result).toEqual(original);
+	});
+
+	it("does nothing when the selection includes an index absent from the palette", () => {
+		const original = makeSerialization();
+
+		const result = mergePaletteColors(original, [1, 99], 1);
+
+		expect(result).toEqual(original);
 	});
 });
 
