@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-09-28
+
 ### Fixed
 
 - Fixed the manual grid adjustment not responding to touch on mobile devices — dragging the selection or its handles with a finger now works the same as with a mouse.
@@ -97,7 +99,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.0...v0.10.1
