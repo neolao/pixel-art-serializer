@@ -6,3 +6,5 @@
 **Depends on:** `modules/grid-detection.md`
 
 `sampleGridCellColor` is exported so `modules/serializer.md` samples grid cells the exact same way the palette itself was built from. Index 0 is always a synthesized `{r:0,g:0,b:0,a:0}` entry, even for a fully-opaque image; every raw sample with `alpha === 0` collapses into it regardless of its RGB, before the perceptual merge runs on the remaining (opaque) samples — see `.vibe/decisions/011-palette-always-reserves-transparent-index-zero.md`. This lets `modules/reconstruction-editor.md` always offer a way to erase a pixel to transparent, even on images with no detected transparency.
+
+When the perceptual merge combines two near-identical samples, their opacity is combined by taking the more opaque of the two rather than a count-weighted average, so a sample landing on an anti-aliased source edge never drags an otherwise fully-opaque color into rendering semi-transparent — see `.vibe/decisions/014-merged-alpha-takes-the-most-opaque-sample.md`.

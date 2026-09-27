@@ -28,6 +28,7 @@
 - Manual "remove a color" is modeled as erasing its pixels to the reserved transparent entry, deliberately distinct from the automatic-reduction/manual-merge features which reassign to the nearest perceptually-similar color instead (see `decisions/012-remove-palette-color-erases-to-transparent.md`)
 - A stateful DOM controller (`reconstruction-editor.ts`) is created once at startup and reset/reloaded per upload, rather than re-created per upload, so its event listeners on persistent elements (canvas, add-color button, merge-toggle button) never stack across successive images
 - A palette-editing operation offered on multiple selected colors at once (manual merge) uses a dedicated toggleable selection mode with checkboxes, rather than overloading the single-color click target already used for painting/recolor/remove, and preserves rather than clears unrelated state (the active paint color) when entering that mode (see `decisions/013-palette-merge-as-distinct-selection-mode.md`)
+- When the perceptual color merge combines two near-identical samples, their opacity is combined by taking the more opaque of the two rather than an average, so a single anti-aliased sample never drags an otherwise fully-opaque color into rendering semi-transparent (see `decisions/014-merged-alpha-takes-the-most-opaque-sample.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models

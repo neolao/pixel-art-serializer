@@ -183,13 +183,22 @@ function preBucket(samples: ColorCount[], step: number): ColorCount[] {
 	return [...buckets.values()];
 }
 
+/**
+ * Alpha is combined by taking the more opaque of the two, not by averaging:
+ * a raw sample landing on an anti-aliased source pixel reports a lower alpha
+ * than its perceptually-identical opaque neighbors purely as a sampling
+ * artifact, so the most opaque sample in a merged group is the one that
+ * reflects the color's true, intended opacity. A color that is genuinely and
+ * consistently semi-transparent never merges with a fully-opaque sample in
+ * the first place, so this never overrides an intentional partial alpha.
+ */
 function averageColor(a: ColorCount, b: ColorCount): ColorCount {
 	const totalCount = a.count + b.count;
 	return {
 		r: Math.round((a.r * a.count + b.r * b.count) / totalCount),
 		g: Math.round((a.g * a.count + b.g * b.count) / totalCount),
 		b: Math.round((a.b * a.count + b.b * b.count) / totalCount),
-		a: Math.round((a.a * a.count + b.a * b.count) / totalCount),
+		a: Math.max(a.a, b.a),
 		count: totalCount,
 	};
 }

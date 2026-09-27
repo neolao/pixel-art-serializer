@@ -183,6 +183,65 @@ describe("extractColorPalette", () => {
 		expect(result.colorCount).toBeLessThan(width);
 	});
 
+	it("normalizes a merged color to full opacity when one of its near-identical samples is fully opaque", () => {
+		// 2x1 logical grid: a solid black outline cell (alpha 255) next to a
+		// near-identical, near-black cell whose alpha is only partial, as a
+		// real anti-aliased edge pixel would sample (observed ~142/255).
+		// The two are perceptually close enough to merge into one entry.
+		const image = makeImage(2, 1, (x) =>
+			x === 0 ? [0, 0, 0, 255] : [1, 1, 1, 142],
+		);
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 2,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+
+		const result = extractColorPalette(image, grid);
+
+		const merged = result.colors.find((c) => c.a !== 0);
+		expect(result.colorCount).toBe(2);
+		expect(merged?.a).toBe(255);
+	});
+
+	it("keeps a color's partial opacity when none of its near-identical samples is ever fully opaque", () => {
+		// 2x1 logical grid: two near-identical cells that both carry the same
+		// partial alpha throughout, as a color deliberately painted
+		// semi-transparent (e.g. translucent water) would look, rather than a
+		// one-off anti-aliasing artifact.
+		const image = makeImage(2, 1, (x) =>
+			x === 0 ? [10, 20, 200, 128] : [11, 20, 200, 128],
+		);
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 2,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+
+		const result = extractColorPalette(image, grid);
+
+		const merged = result.colors.find((c) => c.a !== 0);
+		expect(result.colorCount).toBe(2);
+		expect(merged?.a).toBe(128);
+	});
+
+	it("keeps a lone sample's partial opacity as sampled when it has no other sample to compare against", () => {
+		const image = makeImage(1, 1, () => [50, 50, 50, 100]);
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 1,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+
+		const result = extractColorPalette(image, grid);
+
+		const lone = result.colors.find((c) => c.a !== 0);
+		expect(lone?.a).toBe(100);
+	});
+
 	it("throws when the pixel data length does not match the image dimensions", () => {
 		const image: PixelImageData = {
 			width: 4,

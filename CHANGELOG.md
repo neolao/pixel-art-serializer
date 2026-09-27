@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed a color sampled from an anti-aliased edge (e.g. a black outline) rendering semi-transparent instead of solid — it now reports full opacity whenever the same color is fully opaque elsewhere in the image, while a color that is genuinely and consistently semi-transparent throughout keeps its own opacity unchanged.
+
 ## [0.10.0] - 2026-09-27
 
 ### Added
