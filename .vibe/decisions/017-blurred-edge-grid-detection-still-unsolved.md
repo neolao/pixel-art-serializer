@@ -1,6 +1,6 @@
 ---
 date: 2026-09-27
-status: accepted
+status: superseded by 018
 ---
 # Grid detection on heavily blurred/anti-aliased edges remains unsolved — no production change
 
