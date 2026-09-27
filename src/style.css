@@ -149,3 +149,142 @@ h1 {
 	font-weight: 600;
 	color: var(--text-h);
 }
+
+.manual-grid-stage {
+	position: relative;
+}
+
+.manual-grid-overlay {
+	position: absolute;
+	inset: 0;
+}
+
+.manual-grid-selection {
+	position: absolute;
+	box-sizing: border-box;
+	border: 1px solid #000;
+	outline: 1px solid #fff;
+	outline-offset: -2px;
+	background-image:
+		repeating-linear-gradient(
+			to right,
+			rgba(255, 255, 255, 0.6) 0,
+			rgba(255, 255, 255, 0.6) 1px,
+			transparent 1px,
+			transparent calc(100% / var(--manual-grid-cols, 1))
+		),
+		repeating-linear-gradient(
+			to right,
+			rgba(0, 0, 0, 0.6) 0,
+			rgba(0, 0, 0, 0.6) 1px,
+			transparent 1px,
+			transparent calc(100% / var(--manual-grid-cols, 1))
+		),
+		repeating-linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.6) 0,
+			rgba(255, 255, 255, 0.6) 1px,
+			transparent 1px,
+			transparent calc(100% / var(--manual-grid-rows, 1))
+		),
+		repeating-linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0.6) 0,
+			rgba(0, 0, 0, 0.6) 1px,
+			transparent 1px,
+			transparent calc(100% / var(--manual-grid-rows, 1))
+		);
+	background-position:
+		1px 0,
+		0 0,
+		0 1px,
+		0 0;
+	cursor: move;
+}
+
+.manual-grid-handle {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	margin: -8px;
+	padding: 0;
+	border: 1px solid #000;
+	outline: 1px solid #fff;
+	outline-offset: -2px;
+	background: #000;
+	touch-action: none;
+}
+
+/* Bigger invisible hit area than the visible handle, without affecting layout. */
+.manual-grid-handle::before {
+	content: "";
+	position: absolute;
+	inset: -8px;
+}
+
+.manual-grid-handle[data-handle="nw"] {
+	top: 0;
+	left: 0;
+	cursor: nwse-resize;
+}
+.manual-grid-handle[data-handle="n"] {
+	top: 0;
+	left: 50%;
+	cursor: ns-resize;
+}
+.manual-grid-handle[data-handle="ne"] {
+	top: 0;
+	left: 100%;
+	cursor: nesw-resize;
+}
+.manual-grid-handle[data-handle="e"] {
+	top: 50%;
+	left: 100%;
+	cursor: ew-resize;
+}
+.manual-grid-handle[data-handle="se"] {
+	top: 100%;
+	left: 100%;
+	cursor: nwse-resize;
+}
+.manual-grid-handle[data-handle="s"] {
+	top: 100%;
+	left: 50%;
+	cursor: ns-resize;
+}
+.manual-grid-handle[data-handle="sw"] {
+	top: 100%;
+	left: 0;
+	cursor: nesw-resize;
+}
+.manual-grid-handle[data-handle="w"] {
+	top: 50%;
+	left: 0;
+	cursor: ew-resize;
+}
+
+.manual-grid-controls {
+	margin-top: 16px;
+}
+
+.manual-grid-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 16px;
+	padding: 12px;
+	border: 1px solid var(--swatch-border);
+	border-radius: var(--radius);
+}
+
+.manual-grid-form input[type="number"] {
+	width: 64px;
+}
+
+#manual-grid-error {
+	flex-basis: 100%;
+	margin: 0;
+	color: #c0392b;
+}

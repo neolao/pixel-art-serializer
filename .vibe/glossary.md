@@ -24,6 +24,11 @@ The color palette's first entry, always present and always fully transparent, re
 **Do not confuse with:** a color palette that happens to contain a transparent entry because the source image itself uses transparency — this one is always present on top of whatever the image actually contains.
 _Sources: `src/palette-extraction.ts`, `src/palette-editor.ts`_
 
+## Manual grid adjustment
+Correcting the detected pixel grid by hand: dragging a resizable selection over the original image to pick which area is the real artwork (excluding, for example, a decorative border), and setting the exact width/height in logical pixels. Confirming it re-runs the palette, reconstruction, confidence verdict, and downloadable JSON on that chosen area and size instead of the automatically detected ones; a dedicated action reverts to the automatic result at any time.
+**Do not confuse with:** manually correcting the reconstruction (editing the palette or repainting individual pixels) — that changes color content after the grid is already fixed; this changes the grid itself.
+_Sources: `src/manual-grid-editor.ts`, `src/grid-selection.ts`, `src/image-crop.ts`_
+
 ## Confidence score
 A verdict on whether an uploaded image actually looks like pixel art, combining how regular its detected pixel grid is with how small its color palette is. Expressed as a percentage plus a plain-word verdict and a short explanation of which of the two signals is weak when they disagree.
 **Do not confuse with:** grid regularity or palette size alone — each is only one of the two signals the confidence score combines.

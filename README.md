@@ -16,6 +16,7 @@ A static website that takes an image and turns it into a JSON description of its
 - Manually correct the reconstruction: add, remove, or change a palette color, and repaint any pixel by picking a color from the palette. A dedicated fully-transparent color is always available, even on images with no detected transparency, so pixels can be erased. Every edit updates the reconstruction and the downloadable JSON immediately.
 - See transparent areas of the original and reconstructed image clearly, over a checkerboard backdrop.
 - Manually merge two or more palette colors into one you choose, for cases where the automatic grouping isn't quite what you want. Every affected pixel switches to the merged color, reflected everywhere: the palette, the reconstruction, and the downloadable JSON.
+- Manually correct the detected grid: drag a resizable selection over the original image (or use the keyboard) and set the exact width/height in cells, to exclude an unwanted border or fix a wrong cell count. Confirming updates the reconstruction, palette, confidence verdict, and JSON immediately; a "Return to automatic detection" button undoes it at any time.
 - The downloaded JSON is self-describing: it carries a version number and a clear marker on its permanent transparent color, and comes with a written explanation of its shape plus a published schema so other programs can validate it automatically.
 <!-- vibe:end:features -->
 

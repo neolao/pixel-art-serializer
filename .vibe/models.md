@@ -54,6 +54,15 @@ Defined in: `src/serializer.ts`. Exported/versioned shape documented in [`../doc
 | pixels | number[] | row-major, one palette index per logical pixel, length `gridWidth * gridHeight` |
 Defined in: `src/serializer.ts`. This is the exact shape of the file downloaded by the app.
 
+## CropRect
+| Field | Type | Notes |
+|---|---|---|
+| x | number | left edge, in raw image pixels (rounded before use) |
+| y | number | top edge, in raw image pixels (rounded before use) |
+| width | number | must be ≥ 1 after rounding, and fit within the image bounds |
+| height | number | must be ≥ 1 after rounding, and fit within the image bounds |
+Defined in: `src/image-crop.ts`. `src/grid-selection.ts`'s `SelectionRect` is the same shape, used for the live, in-progress selection state rather than a validated crop instruction — the two are structurally interchangeable but named for their distinct roles.
+
 ## ConfidenceResult
 | Field | Type | Notes |
 |---|---|---|

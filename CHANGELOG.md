@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - The reconstruction now shows its detected grid size (width × height, in logical pixels), so users can immediately see how the image was decomposed.
 - Pixel grid detection is now far more reliable on real-world pixel art with soft, anti-aliased edges (for example a photographed or re-compressed sprite): it used to report no grid at all on such images, and now finds one very close to the real size.
+- Users can now manually correct the detected grid: an "Adjust grid manually" button reveals a selection rectangle over the original image, with draggable/resizable handles (mouse or keyboard) and a width/height field, to crop out unwanted borders or fix a wrong cell count. Confirming re-runs the reconstruction, confidence verdict, and JSON download on the chosen area; "Return to automatic detection" reverts to the original result at any time.
 
 ## [0.11.0] - 2026-09-27
 

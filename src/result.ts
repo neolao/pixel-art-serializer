@@ -4,6 +4,8 @@ import {
 	detectPixelGridSize,
 	type GridDetectionResult,
 } from "./grid-detection";
+import type { CropRect } from "./image-crop";
+import { cropPixelData } from "./image-crop";
 import { TRANSPARENT_INDEX } from "./palette-editor";
 import {
 	extractColorPalette,
@@ -115,6 +117,32 @@ export function computeDetection(image: HTMLImageElement): DetectionResult {
 	const grid = detectPixelGridSize(pixelData);
 	const palette = extractColorPalette(pixelData, grid);
 	const serialization = serializePixelArt(pixelData, grid, palette);
+	return { grid, palette, serialization };
+}
+
+/**
+ * Runs the same pipeline as `computeDetection`, but on a user-confirmed crop
+ * and grid size instead of running automatic detection — see
+ * .vibe/decisions/020-manual-grid-adjustment-as-crop.md. The manually
+ * confirmed grid is treated as fully regular (`gridRegularity: 1`): it's a
+ * factual statement of what the user picked, not a judgment of quality.
+ */
+export function computeManualDetection(
+	image: HTMLImageElement,
+	crop: CropRect,
+	gridWidth: number,
+	gridHeight: number,
+): DetectionResult {
+	const pixelData = extractPixelData(image);
+	const cropped = cropPixelData(pixelData, crop);
+	const grid: GridDetectionResult = {
+		pixelSize: Math.min(cropped.width / gridWidth, cropped.height / gridHeight),
+		gridWidth,
+		gridHeight,
+		gridRegularity: 1,
+	};
+	const palette = extractColorPalette(cropped, grid);
+	const serialization = serializePixelArt(cropped, grid, palette);
 	return { grid, palette, serialization };
 }
 
