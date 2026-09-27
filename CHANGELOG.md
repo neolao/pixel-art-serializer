@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-27
+
 ### Added
 
 - After uploading an image, users can now see it side by side with a reconstruction built purely from the detected pixel grid and color palette, plus the indexed color palette shown as labeled swatches. The comparison clears as soon as a new image is selected, so no stale result lingers.
@@ -35,7 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.1.0...v0.2.0
