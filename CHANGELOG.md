@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-27
+
 ### Added
 
 - The result now shows a confidence verdict — with a percentage and a short explanation — on whether the uploaded image actually looks like pixel art, based on how regular its detected pixel grid is and how small its color palette is.
@@ -47,7 +49,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.3.0...v0.4.0
