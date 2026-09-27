@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-27
+
 ### Added
 
 - Users can now manually merge two or more palette colors into one they choose from the selection, for cases where automatic grouping doesn't produce the result they want. Every pixel pointing at a merged-away color is reassigned to the surviving color, reflected in the palette, the reconstruction, and the downloadable JSON. If the color currently active for painting gets merged away, painting continues seamlessly with the surviving color.
@@ -72,6 +74,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
 [Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.9.0...HEAD
+[0.10.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.7.0...v0.8.0
