@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-27
+
 ### Added
 
 - Users can now download the generated pixel grid, palette, and per-pixel color data as a `.json` file, named after the source image. The download link only appears once a result has been generated, and disappears as soon as a new image is selected.
@@ -41,7 +43,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.2.0...v0.3.0
