@@ -71,18 +71,18 @@ describe("createManualGridEditor", () => {
 			editor.activate(100, 100, 8, 8);
 
 			elements.handles.se.dispatchEvent(
-				new MouseEvent("mousedown", {
+				new PointerEvent("pointerdown", {
 					clientX: 100,
 					clientY: 100,
 					bubbles: true,
 				}),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mousemove", { clientX: 80, clientY: 80 }),
+				new PointerEvent("pointermove", { clientX: 80, clientY: 80 }),
 			);
 			expect(onConfirm).not.toHaveBeenCalled();
 			window.dispatchEvent(
-				new MouseEvent("mouseup", { clientX: 80, clientY: 80 }),
+				new PointerEvent("pointerup", { clientX: 80, clientY: 80 }),
 			);
 
 			expect(onConfirm).toHaveBeenCalledTimes(1);
@@ -99,21 +99,57 @@ describe("createManualGridEditor", () => {
 			editor.activate(100, 100, 8, 8);
 
 			elements.handles.se.dispatchEvent(
-				new MouseEvent("mousedown", {
+				new PointerEvent("pointerdown", {
 					clientX: 100,
 					clientY: 100,
 					bubbles: true,
 				}),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mousemove", { clientX: 500, clientY: 500 }),
+				new PointerEvent("pointermove", { clientX: 500, clientY: 500 }),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mouseup", { clientX: 500, clientY: 500 }),
+				new PointerEvent("pointerup", { clientX: 500, clientY: 500 }),
 			);
 
 			const [rect] = onConfirm.mock.calls[0];
 			expect(rect).toEqual({ x: 0, y: 0, width: 100, height: 100 });
+		});
+
+		it("resizes from a touch drag on a mobile device, not just a mouse", () => {
+			const elements = makeElements();
+			const onConfirm = vi.fn();
+			const editor = createManualGridEditor(elements, onConfirm, vi.fn());
+			editor.activate(100, 100, 8, 8);
+
+			elements.handles.se.dispatchEvent(
+				new PointerEvent("pointerdown", {
+					pointerType: "touch",
+					clientX: 100,
+					clientY: 100,
+					bubbles: true,
+				}),
+			);
+			window.dispatchEvent(
+				new PointerEvent("pointermove", {
+					pointerType: "touch",
+					clientX: 80,
+					clientY: 80,
+				}),
+			);
+			window.dispatchEvent(
+				new PointerEvent("pointerup", {
+					pointerType: "touch",
+					clientX: 80,
+					clientY: 80,
+				}),
+			);
+
+			expect(onConfirm).toHaveBeenCalledWith(
+				{ x: 0, y: 0, width: 80, height: 80 },
+				8,
+				8,
+			);
 		});
 	});
 
@@ -125,31 +161,31 @@ describe("createManualGridEditor", () => {
 			editor.activate(100, 100, 4, 4);
 			// Shrink first so there is room to move within the 100x100 image.
 			elements.handles.se.dispatchEvent(
-				new MouseEvent("mousedown", {
+				new PointerEvent("pointerdown", {
 					clientX: 100,
 					clientY: 100,
 					bubbles: true,
 				}),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mousemove", { clientX: 60, clientY: 60 }),
+				new PointerEvent("pointermove", { clientX: 60, clientY: 60 }),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mouseup", { clientX: 60, clientY: 60 }),
+				new PointerEvent("pointerup", { clientX: 60, clientY: 60 }),
 			);
 
 			elements.selection.dispatchEvent(
-				new MouseEvent("mousedown", {
+				new PointerEvent("pointerdown", {
 					clientX: 10,
 					clientY: 10,
 					bubbles: true,
 				}),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mousemove", { clientX: 30, clientY: 20 }),
+				new PointerEvent("pointermove", { clientX: 30, clientY: 20 }),
 			);
 			window.dispatchEvent(
-				new MouseEvent("mouseup", { clientX: 30, clientY: 20 }),
+				new PointerEvent("pointerup", { clientX: 30, clientY: 20 }),
 			);
 
 			const last = onConfirm.mock.calls.at(-1)?.[0];

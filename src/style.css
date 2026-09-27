@@ -165,6 +165,7 @@ h1 {
 	border: 1px solid #000;
 	outline: 1px solid #fff;
 	outline-offset: -2px;
+	touch-action: none;
 	background-image:
 		repeating-linear-gradient(
 			to right,

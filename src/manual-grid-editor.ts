@@ -73,7 +73,7 @@ export function createManualGridEditor(
 		);
 	}
 
-	function pointFromEvent(event: MouseEvent): { x: number; y: number } {
+	function pointFromEvent(event: PointerEvent): { x: number; y: number } {
 		return toImageSpace(
 			elements.stage.getBoundingClientRect(),
 			imageWidth,
@@ -83,7 +83,7 @@ export function createManualGridEditor(
 		);
 	}
 
-	function onPointerMove(event: MouseEvent): void {
+	function onPointerMove(event: PointerEvent): void {
 		if (!drag) return;
 		const point = pointFromEvent(event);
 		const deltaX = point.x - drag.startImage.x;
@@ -102,23 +102,23 @@ export function createManualGridEditor(
 		render();
 	}
 
-	function endDrag(event: MouseEvent): void {
+	function endDrag(event: PointerEvent): void {
 		if (!drag) return;
 		onPointerMove(event);
 		drag = null;
-		window.removeEventListener("mousemove", onPointerMove);
-		window.removeEventListener("mouseup", endDrag);
+		window.removeEventListener("pointermove", onPointerMove);
+		window.removeEventListener("pointerup", endDrag);
 		onConfirm(rect, currentGridWidth(), currentGridHeight());
 	}
 
-	function startDrag(event: MouseEvent, next: DragState): void {
+	function startDrag(event: PointerEvent, next: DragState): void {
 		event.preventDefault();
 		drag = next;
-		window.addEventListener("mousemove", onPointerMove);
-		window.addEventListener("mouseup", endDrag);
+		window.addEventListener("pointermove", onPointerMove);
+		window.addEventListener("pointerup", endDrag);
 	}
 
-	elements.selection.addEventListener("mousedown", (event) => {
+	elements.selection.addEventListener("pointerdown", (event) => {
 		if (event.target !== elements.selection) return;
 		startDrag(event, {
 			kind: "move",
@@ -128,7 +128,7 @@ export function createManualGridEditor(
 	});
 
 	for (const handle of Object.keys(elements.handles) as Handle[]) {
-		elements.handles[handle].addEventListener("mousedown", (event) => {
+		elements.handles[handle].addEventListener("pointerdown", (event) => {
 			event.stopPropagation();
 			startDrag(event, {
 				kind: "resize",

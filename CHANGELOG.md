@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the manual grid adjustment not responding to touch on mobile devices — dragging the selection or its handles with a finger now works the same as with a mouse.
+
 ## [0.12.0] - 2026-09-28
 
 ### Added
