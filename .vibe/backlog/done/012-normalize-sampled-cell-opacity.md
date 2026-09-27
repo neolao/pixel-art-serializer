@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 ---
 # Normalize Sampled Cell Opacity
 
@@ -9,9 +9,9 @@ A palette color sampled at a grid cell keeps the raw alpha value found at that p
 
 ## Acceptance Criteria
 
-- [ ] User uploads an image whose grid-aligned edges land on anti-aliased source pixels (e.g. the Mario mushroom icon); the reconstruction renders the outline as solid black, not gray.
-- [ ] The downloaded JSON's palette reports full opacity (alpha 255) for colors sampled from such edges, when the surrounding art is otherwise fully opaque.
-- [ ] An image that legitimately uses partial transparency (a real semi-transparent pixel-art color) is not silently forced to full opacity — the fix targets anti-aliasing noise at cell sampling, not intentional alpha.
+- [x] User uploads an image whose grid-aligned edges land on anti-aliased source pixels (e.g. the Mario mushroom icon); the reconstruction renders the outline as solid black, not gray.
+- [x] The downloaded JSON's palette reports full opacity (alpha 255) for colors sampled from such edges, when the surrounding art is otherwise fully opaque.
+- [x] An image that legitimately uses partial transparency (a real semi-transparent pixel-art color) is not silently forced to full opacity — the fix targets anti-aliasing noise at cell sampling, not intentional alpha.
 
 ## Notes
 
