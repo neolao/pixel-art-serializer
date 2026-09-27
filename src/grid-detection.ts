@@ -8,6 +8,7 @@ export interface GridDetectionResult {
 	pixelSize: number;
 	gridWidth: number;
 	gridHeight: number;
+	gridRegularity: number;
 }
 
 const COLOR_TOLERANCE = 3;
@@ -35,12 +36,27 @@ export function detectPixelGridSize(
 
 	const horizontal = mode(hRuns) ?? 1;
 	const vertical = mode(vRuns) ?? 1;
+	const pixelSize = Math.min(horizontal, vertical);
 
 	return {
-		pixelSize: Math.min(horizontal, vertical),
+		pixelSize,
 		gridWidth: Math.round(width / horizontal),
 		gridHeight: Math.round(height / vertical),
+		gridRegularity:
+			pixelSize <= 1
+				? 0
+				: (matchRatio(hRuns, horizontal) + matchRatio(vRuns, vertical)) / 2,
 	};
+}
+
+/**
+ * Share of scanned runs that match the detected cell size for one axis — how
+ * consistently that size actually repeats, as opposed to merely being the
+ * single most frequent value among otherwise scattered lengths.
+ */
+function matchRatio(runs: number[], value: number): number {
+	if (runs.length === 0) return 0;
+	return runs.filter((run) => run === value).length / runs.length;
 }
 
 /**

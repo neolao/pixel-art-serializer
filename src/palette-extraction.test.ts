@@ -36,6 +36,7 @@ describe("extractColorPalette", () => {
 			pixelSize: 2,
 			gridWidth: 2,
 			gridHeight: 2,
+			gridRegularity: 1,
 		};
 
 		const result = extractColorPalette(image, grid);
@@ -59,6 +60,7 @@ describe("extractColorPalette", () => {
 			pixelSize: 1,
 			gridWidth: 2,
 			gridHeight: 1,
+			gridRegularity: 1,
 		};
 
 		const result = extractColorPalette(image, grid);
@@ -73,6 +75,7 @@ describe("extractColorPalette", () => {
 			pixelSize: 2,
 			gridWidth: 3,
 			gridHeight: 3,
+			gridRegularity: 1,
 		};
 
 		const result = extractColorPalette(image, grid);
@@ -101,6 +104,7 @@ describe("extractColorPalette", () => {
 			pixelSize: 1,
 			gridWidth: width,
 			gridHeight: height,
+			gridRegularity: 1,
 		};
 
 		const start = Date.now();
@@ -122,6 +126,7 @@ describe("extractColorPalette", () => {
 			pixelSize: 2,
 			gridWidth: 2,
 			gridHeight: 2,
+			gridRegularity: 1,
 		};
 
 		expect(() => extractColorPalette(image, grid)).toThrow(

@@ -37,6 +37,7 @@ describe("serializePixelArt", () => {
 			pixelSize: 2,
 			gridWidth: 2,
 			gridHeight: 2,
+			gridRegularity: 1,
 		};
 		const palette = extractColorPalette(image, grid);
 
@@ -70,6 +71,7 @@ describe("serializePixelArt", () => {
 			pixelSize: 2,
 			gridWidth: 3,
 			gridHeight: 3,
+			gridRegularity: 1,
 		};
 		const palette = extractColorPalette(image, grid);
 
@@ -90,6 +92,7 @@ describe("serializePixelArt", () => {
 			pixelSize: 1,
 			gridWidth: 2,
 			gridHeight: 1,
+			gridRegularity: 1,
 		};
 		const palette = extractColorPalette(image, grid);
 
@@ -109,6 +112,7 @@ describe("serializePixelArt", () => {
 			pixelSize: 2,
 			gridWidth: 2,
 			gridHeight: 2,
+			gridRegularity: 1,
 		};
 
 		expect(() =>

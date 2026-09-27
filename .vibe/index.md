@@ -7,18 +7,20 @@
 - [`modules/grid-detection.md`](modules/grid-detection.md) — detects an image's logical pixel grid size
 - [`modules/palette-extraction.md`](modules/palette-extraction.md) — extracts and indexes an image's color palette from its detected grid
 - [`modules/serializer.md`](modules/serializer.md) — combines the detected grid and palette into one JSON description of the image
-- [`modules/result.md`](modules/result.md) — displays the reconstructed image, color palette, and JSON download link next to the original, and runs the pipeline that produces them
+- [`modules/confidence.md`](modules/confidence.md) — scores how likely an image is to actually be pixel art, from its grid regularity and palette size
+- [`modules/result.md`](modules/result.md) — displays the reconstructed image, color palette, JSON download link, and confidence verdict next to the original, and runs the pipeline that produces them
 
 ## Observed patterns
 - Vite entry point pattern: `src/main.ts` queries `#app` and sets its `innerHTML` directly (no framework, no virtual DOM)
 - DOM orchestration functions take their target elements as plain arguments (e.g. `handleImageSelection(file, elements)`) instead of querying the DOM themselves, to stay unit-testable without mounting the whole page
 - File-reading/validation logic (`image-loader.ts`) is kept free of DOM access so it can be tested in isolation from `upload.ts`'s DOM orchestration
-- Pure algorithmic logic (`grid-detection.ts`, `palette-extraction.ts`, `serializer.ts`) is kept free of DOM/canvas access so it can be unit-tested with synthetic pixel data; DOM-dependent steps (`pixel-data.ts`, and `result.ts`'s canvas drawing + pipeline orchestration) are verified only through the `run` skill in a real browser, since jsdom has no real 2D canvas and never fires an `<img>`'s `load`/`error` events (see `decisions/003-canvas-pixel-extraction-verified-at-runtime.md`)
+- Pure algorithmic logic (`grid-detection.ts`, `palette-extraction.ts`, `serializer.ts`, `confidence.ts`) is kept free of DOM/canvas access so it can be unit-tested with synthetic pixel data; DOM-dependent steps (`pixel-data.ts`, and `result.ts`'s canvas drawing + pipeline orchestration) are verified only through the `run` skill in a real browser, since jsdom has no real 2D canvas and never fires an `<img>`'s `load`/`error` events (see `decisions/003-canvas-pixel-extraction-verified-at-runtime.md`)
 - A pairwise/O(n²) algorithm (`palette-extraction.ts`'s perceptual color merge) is guarded with a bounded pre-processing step (coarse bucketing, escalating until under a hard cap) rather than trusting the algorithm to stay fast on adversarial input (see `decisions/005-palette-extraction-cell-sampling.md`)
 - A step that needs per-cell attribution to already-computed results (`serializer.ts` assigning palette indices) re-derives it by nearest-match lookup instead of threading position bookkeeping through an upstream pipeline that doesn't otherwise need it (see `decisions/006-pixel-indices-by-nearest-palette-color.md`)
 - A result derived from user-provided data is cleared synchronously at the start of handling a new input, before that input's outcome is known, rather than when a new result is ready — so a stale result never lingers next to a fresh error (`main.ts`'s `change` handler calling `resetResult`)
 - The reconstruction is drawn straight to a live `<canvas>` rather than round-tripped through `toDataURL`/`<img>`, to avoid re-encoding drift between the palette JSON and what's displayed (see `decisions/007-reconstruction-rendered-to-live-canvas.md`)
 - A small download payload is built as a `data:` URL rather than a `Blob` object URL, so the whole feature (content included) stays coverable by automated tests instead of falling into the project's real-browser-only verification path (see `decisions/008-json-download-via-data-url.md`)
+- A derived signal (`confidence.ts`'s grid regularity) is computed inside the module that already gathers the raw data it needs (`grid-detection.ts`) rather than duplicating that scan elsewhere (see `decisions/009-grid-regularity-exposed-from-detection.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models

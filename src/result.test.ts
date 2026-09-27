@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type { ConfidenceResult } from "./confidence";
 import {
 	type ResultElements,
+	renderConfidence,
 	renderDownloadLink,
 	renderPalette,
 	resetResult,
@@ -16,8 +18,15 @@ function makeResultElements(): ResultElements {
 	const reconstructionCanvas = document.createElement("canvas");
 	const palette = document.createElement("div");
 	const downloadLink = document.createElement("a");
+	const confidence = document.createElement("p");
 	reconstructionFigure.appendChild(reconstructionCanvas);
-	return { reconstructionFigure, reconstructionCanvas, palette, downloadLink };
+	return {
+		reconstructionFigure,
+		reconstructionCanvas,
+		palette,
+		downloadLink,
+		confidence,
+	};
 }
 
 function readDownloadedJson(link: HTMLAnchorElement): unknown {
@@ -115,6 +124,50 @@ describe("resetResult", () => {
 
 		expect(elements.downloadLink.hidden).toBe(true);
 		expect(elements.downloadLink.getAttribute("href")).toBeNull();
+	});
+
+	it("hides the confidence verdict and clears its previous text", () => {
+		const elements = makeResultElements();
+		renderConfidence(elements.confidence, {
+			score: 1,
+			verdict: "Looks like pixel art",
+			explanation: "a regular pixel grid and a small color palette",
+		});
+
+		resetResult(elements);
+
+		expect(elements.confidence.hidden).toBe(true);
+		expect(elements.confidence.textContent).toBe("");
+	});
+});
+
+describe("renderConfidence", () => {
+	it("shows the verdict, the score as a rounded percentage, and the explanation", () => {
+		const element = document.createElement("p");
+		const confidence: ConfidenceResult = {
+			score: 0.8675,
+			verdict: "Looks like pixel art",
+			explanation: "a regular pixel grid and a small color palette",
+		};
+
+		renderConfidence(element, confidence);
+
+		expect(element.hidden).toBe(false);
+		expect(element.textContent).toBe(
+			"Looks like pixel art (87%) — a regular pixel grid and a small color palette.",
+		);
+	});
+
+	it("rounds a low score down to a whole percentage instead of showing decimals", () => {
+		const element = document.createElement("p");
+
+		renderConfidence(element, {
+			score: 0.124,
+			verdict: "Doesn't look like pixel art",
+			explanation: "an irregular pixel grid and a large color palette",
+		});
+
+		expect(element.textContent).toContain("(12%)");
 	});
 });
 

@@ -23,6 +23,7 @@ if (app) {
           ></canvas>
         </figure>
       </div>
+      <p id="confidence" role="status" hidden></p>
       <div id="palette" aria-label="Color palette" hidden></div>
       <a id="download-json" download hidden>Download JSON</a>
     </main>
@@ -39,6 +40,7 @@ if (app) {
 	);
 	const palette = app.querySelector<HTMLElement>("#palette");
 	const downloadLink = app.querySelector<HTMLAnchorElement>("#download-json");
+	const confidence = app.querySelector<HTMLElement>("#confidence");
 
 	if (
 		input &&
@@ -47,13 +49,15 @@ if (app) {
 		reconstructionFigure &&
 		reconstructionCanvas &&
 		palette &&
-		downloadLink
+		downloadLink &&
+		confidence
 	) {
 		const resultElements: ResultElements = {
 			reconstructionFigure,
 			reconstructionCanvas,
 			palette,
 			downloadLink,
+			confidence,
 		};
 		let currentFileName: string | undefined;
 

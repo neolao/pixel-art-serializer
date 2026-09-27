@@ -1,3 +1,4 @@
+import { type ConfidenceResult, computeConfidence } from "./confidence";
 import { detectPixelGridSize } from "./grid-detection";
 import { extractColorPalette } from "./palette-extraction";
 import { extractPixelData } from "./pixel-data";
@@ -12,6 +13,7 @@ export interface ResultElements {
 	reconstructionCanvas: HTMLCanvasElement;
 	palette: HTMLElement;
 	downloadLink: HTMLAnchorElement;
+	confidence: HTMLElement;
 }
 
 const DEFAULT_DOWNLOAD_FILENAME = "pixel-art.json";
@@ -22,6 +24,8 @@ export function resetResult(elements: ResultElements): void {
 	elements.palette.innerHTML = "";
 	elements.downloadLink.hidden = true;
 	elements.downloadLink.removeAttribute("href");
+	elements.confidence.hidden = true;
+	elements.confidence.textContent = "";
 	const context = elements.reconstructionCanvas.getContext("2d");
 	context?.clearRect(
 		0,
@@ -81,7 +85,17 @@ export function displayResult(
 	renderReconstruction(elements.reconstructionCanvas, serialization);
 	renderPalette(elements.palette, serialization.palette);
 	renderDownloadLink(elements.downloadLink, serialization, sourceFileName);
+	renderConfidence(elements.confidence, computeConfidence(grid, palette));
 	elements.reconstructionFigure.hidden = false;
+}
+
+export function renderConfidence(
+	element: HTMLElement,
+	confidence: ConfidenceResult,
+): void {
+	const percent = Math.round(confidence.score * 100);
+	element.textContent = `${confidence.verdict} (${percent}%) — ${confidence.explanation}.`;
+	element.hidden = false;
 }
 
 export function renderDownloadLink(

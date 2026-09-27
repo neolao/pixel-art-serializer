@@ -30,6 +30,18 @@ function makeBlockGridImage(
 	return { width, height, data };
 }
 
+/** Flips one pixel to the opposite of the checkerboard's two colors. */
+function flipPixel(image: PixelImageData, x: number, y: number): void {
+	const i = (y * image.width + x) * 4;
+	const data = image.data as Uint8ClampedArray;
+	const isWhite = data[i] > 128;
+	const flipped = isWhite ? [20, 20, 20, 255] : [255, 255, 255, 255];
+	data[i] = flipped[0];
+	data[i + 1] = flipped[1];
+	data[i + 2] = flipped[2];
+	data[i + 3] = flipped[3];
+}
+
 /** Builds a synthetic image where every pixel differs sharply from its neighbours. */
 function makeNoisyImage(width: number, height: number): PixelImageData {
 	const data = new Uint8ClampedArray(width * height * 4);
@@ -51,7 +63,12 @@ describe("detectPixelGridSize", () => {
 
 		const result = detectPixelGridSize(image);
 
-		expect(result).toEqual({ pixelSize: 10, gridWidth: 4, gridHeight: 3 });
+		expect(result).toEqual({
+			pixelSize: 10,
+			gridWidth: 4,
+			gridHeight: 3,
+			gridRegularity: 1,
+		});
 	});
 
 	it("detects independent horizontal and vertical cell sizes for a non-square grid", () => {
@@ -59,7 +76,12 @@ describe("detectPixelGridSize", () => {
 
 		const result = detectPixelGridSize(image);
 
-		expect(result).toEqual({ pixelSize: 5, gridWidth: 3, gridHeight: 2 });
+		expect(result).toEqual({
+			pixelSize: 5,
+			gridWidth: 3,
+			gridHeight: 2,
+			gridRegularity: 1,
+		});
 	});
 
 	it("detects a pixel size of 1 for a photo-like image with no consistent grid", () => {
@@ -67,7 +89,12 @@ describe("detectPixelGridSize", () => {
 
 		const result = detectPixelGridSize(image);
 
-		expect(result).toEqual({ pixelSize: 1, gridWidth: 50, gridHeight: 50 });
+		expect(result).toEqual({
+			pixelSize: 1,
+			gridWidth: 50,
+			gridHeight: 50,
+			gridRegularity: 0,
+		});
 	});
 
 	it("detects a pixel size of 1 for a small image already at native resolution", () => {
@@ -75,7 +102,28 @@ describe("detectPixelGridSize", () => {
 
 		const result = detectPixelGridSize(image);
 
-		expect(result).toEqual({ pixelSize: 1, gridWidth: 2, gridHeight: 2 });
+		expect(result).toEqual({
+			pixelSize: 1,
+			gridWidth: 2,
+			gridHeight: 2,
+			gridRegularity: 0,
+		});
+	});
+
+	it("reports a lower grid regularity when some scanned lines break the otherwise-consistent block size", () => {
+		const image = makeBlockGridImage(4, 3, 10, 10);
+		// Flip a single pixel deep inside a block, on a line the scanner samples
+		// (row y=5, column x=15), splitting that one run in two without changing
+		// which block size is most common overall.
+		flipPixel(image, 15, 5);
+
+		const result = detectPixelGridSize(image);
+
+		expect(result.pixelSize).toBe(10);
+		expect(result.gridWidth).toBe(4);
+		expect(result.gridHeight).toBe(3);
+		expect(result.gridRegularity).toBeGreaterThan(0.8);
+		expect(result.gridRegularity).toBeLessThan(1);
 	});
 
 	it("throws when the pixel data does not match the declared dimensions", () => {

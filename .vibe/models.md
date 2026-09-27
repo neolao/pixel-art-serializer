@@ -14,6 +14,7 @@ Defined in: `src/grid-detection.ts`
 | pixelSize | number | detected logical pixel size in raw pixels; `1` means no consistent grid was found |
 | gridWidth | number | image width in logical pixels |
 | gridHeight | number | image height in logical pixels |
+| gridRegularity | number | 0-1, share of scanned runs matching the detected cell size; `0` whenever `pixelSize` is `1` |
 Defined in: `src/grid-detection.ts`
 
 ## PaletteColor
@@ -49,3 +50,11 @@ Defined in: `src/serializer.ts`
 | palette | SerializedPaletteColor[] | the indexed color palette |
 | pixels | number[] | row-major, one palette index per logical pixel, length `gridWidth * gridHeight` |
 Defined in: `src/serializer.ts`
+
+## ConfidenceResult
+| Field | Type | Notes |
+|---|---|---|
+| score | number | 0-1, average of grid regularity and palette-size score |
+| verdict | string | "Looks like pixel art" or "Doesn't look like pixel art" |
+| explanation | string | one clause naming which signal is weak when they disagree |
+Defined in: `src/confidence.ts`
