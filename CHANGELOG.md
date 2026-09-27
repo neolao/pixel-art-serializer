@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-27
+
 ### Added
 
 - Implemented serialization of a decomposed image into one JSON description: its logical grid size, its color palette as hex codes, and, for every logical pixel, the index of the palette color it uses. Not yet connected to the upload screen.
@@ -29,7 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/neolao/pixel-art-serializer/releases/tag/v0.1.0

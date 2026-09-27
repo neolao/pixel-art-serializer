@@ -15,6 +15,7 @@ npm run test
 - **`main.test.ts`** — one end-to-end style test that dispatches a real `change` event on the actual input to confirm the wiring between the page and the upload logic works, on top of the existing test confirming the page mounts its elements.
 - **`grid-detection.test.ts`** — `detectPixelGridSize` against synthetic pixel data: a uniform upscaled grid, a grid with non-square cells, a photo-like image with no consistent grid, a tiny image already at native resolution, and two invalid-input cases (mismatched pixel data length, zero-sized image).
 - **`palette-extraction.test.ts`** — `extractColorPalette` against synthetic pixel data: an image with clearly separated colors, near-identical colors that should merge into one palette entry, a flat single-color image, a pathological case simulating a failed grid detection (thousands of near-random colors, asserting the result still comes back quickly and bounded), and an invalid-input case (mismatched pixel data length).
+- **`serializer.test.ts`** — `serializePixelArt` against synthetic pixel data: a grid with clearly separated colors (checks the grid size, the palette as hex codes, and each pixel's palette index), a flat single-color image, a case where two near-identical colors are merged and every pixel must still point at the merged entry (not a color no longer in the palette), and an invalid-input case (mismatched pixel data length).
 
 ## What's intentionally not covered by automated tests
 

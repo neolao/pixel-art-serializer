@@ -12,6 +12,8 @@ flowchart LR
     pixeldata["pixel-data.ts (canvas pixel extraction)"] -.not yet wired in.-> griddetect["grid-detection.ts (grid size detection)"]
     griddetect -.not yet wired in.-> palette["palette-extraction.ts (color palette extraction)"]
     palette -->|perceptual color distance| color["color.ts (sRGB to Lab conversion)"]
+    griddetect --> serializer["serializer.ts (JSON serialization)"]
+    palette --> serializer
 ```
 
 ## Modules
@@ -28,9 +30,11 @@ flowchart LR
 
 **`palette-extraction.ts`** — Pure function `extractColorPalette`: given the raw pixel data and a detected grid, samples one raw pixel per logical grid cell (the one nearest the cell's center), then repeatedly merges the two perceptually closest colors (in Lab space, via `color.ts`) while they stay under a "just noticeable difference" threshold, so near-identical colors caused by compression artifacts collapse into one palette entry. Returns the indexed list of distinct colors plus their count. Guards against pathological input (e.g. grid detection finding no grid on a large, noisy image) by coarsely bucketing colors first whenever there would otherwise be too many to merge pairwise in reasonable time.
 
-**`color.ts`** — Two pure functions with no dependency on the rest of the app: `rgbToLab` (sRGB to CIE Lab conversion) and `labDistance` (CIE76 perceptual distance between two Lab colors), used by `palette-extraction.ts` to compare colors the way a human eye would rather than by raw RGB difference.
+**`color.ts`** — Three pure functions with no dependency on the rest of the app: `rgbToLab` (sRGB to CIE Lab conversion), `labDistance` (CIE76 perceptual distance between two Lab colors), and `rgbToHex` (channel values to a `#rrggbb` string), used by `palette-extraction.ts` and `serializer.ts`.
 
-None of `grid-detection.ts`, `pixel-data.ts`, or `palette-extraction.ts` is called from `main.ts`/`upload.ts` yet; a later feature wires them into the upload flow and displays the result.
+**`serializer.ts`** — Pure function `serializePixelArt`: given the raw pixel data, the detected grid, and the extracted palette, resamples each grid cell's color (the same way `palette-extraction.ts` samples it) and assigns it to the closest palette entry in Lab space, so a pixel whose original shade was folded into another during palette extraction still ends up pointing at the entry that absorbed it. Returns one JSON-ready object: grid width/height, the palette as `{ index, hex, alpha }` entries, and a flat, row-major array of one palette index per logical pixel.
+
+None of `grid-detection.ts`, `pixel-data.ts`, `palette-extraction.ts`, or `serializer.ts` is called from `main.ts`/`upload.ts` yet; a later feature wires them into the upload flow and displays the result.
 
 ## Data flow
 
@@ -40,4 +44,4 @@ None of `grid-detection.ts`, `pixel-data.ts`, or `palette-extraction.ts` is call
 3. `upload.ts` validates the type via `image-loader.ts`; on success it reads the file (also via `image-loader.ts`) and sets the preview image's `src` to the resulting data URL; on failure it shows an inline error and hides the preview.
 4. If the file passed the type check but isn't actually a valid image (a corrupted file), the preview `<img>`'s own `onerror` handler catches the browser's decode failure and swaps back to the error message.
 
-**Grid and palette detection (built, not yet connected):** given a loaded `<img>`, `pixel-data.ts` reads its raw pixels via canvas, `grid-detection.ts` turns that into a logical pixel size and grid width/height, and `palette-extraction.ts` uses that grid to derive the image's indexed color palette.
+**Grid detection, palette extraction, and JSON serialization (built, not yet connected):** given a loaded `<img>`, `pixel-data.ts` reads its raw pixels via canvas, `grid-detection.ts` turns that into a logical pixel size and grid width/height, `palette-extraction.ts` uses that grid to derive the image's indexed color palette, and `serializer.ts` combines the grid and the palette into the final JSON description.
