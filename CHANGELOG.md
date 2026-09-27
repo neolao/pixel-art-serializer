@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-28
+
 ### Added
 
 - The reconstruction now shows its detected grid size (width × height, in logical pixels), so users can immediately see how the image was decomposed.
@@ -91,7 +93,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.9.0...v0.10.0
