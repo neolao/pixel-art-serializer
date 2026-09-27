@@ -7,6 +7,7 @@ A static website that takes an image and turns it into a JSON description of its
 - Choosing a file that isn't a supported image (including SVG, which isn't pixel data) shows a clear error message instead of a broken preview.
 - See the uploaded image side by side with a reconstruction built purely from its detected pixel grid and color palette, plus the color palette itself shown as labeled swatches.
 - Selecting a new image immediately clears the previous comparison, so no stale result is ever shown alongside a new upload.
+- Download the detected pixel grid, palette, and per-pixel color data as a `.json` file, named after the source image, once a result is ready.
 <!-- vibe:end:features -->
 
 <!-- vibe:begin:install -->

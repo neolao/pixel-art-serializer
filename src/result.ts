@@ -11,12 +11,17 @@ export interface ResultElements {
 	reconstructionFigure: HTMLElement;
 	reconstructionCanvas: HTMLCanvasElement;
 	palette: HTMLElement;
+	downloadLink: HTMLAnchorElement;
 }
+
+const DEFAULT_DOWNLOAD_FILENAME = "pixel-art.json";
 
 export function resetResult(elements: ResultElements): void {
 	elements.reconstructionFigure.hidden = true;
 	elements.palette.hidden = true;
 	elements.palette.innerHTML = "";
+	elements.downloadLink.hidden = true;
+	elements.downloadLink.removeAttribute("href");
 	const context = elements.reconstructionCanvas.getContext("2d");
 	context?.clearRect(
 		0,
@@ -66,6 +71,7 @@ export function renderReconstruction(
 export function displayResult(
 	image: HTMLImageElement,
 	elements: ResultElements,
+	sourceFileName: string | undefined,
 ): void {
 	const pixelData = extractPixelData(image);
 	const grid = detectPixelGridSize(pixelData);
@@ -74,7 +80,32 @@ export function displayResult(
 
 	renderReconstruction(elements.reconstructionCanvas, serialization);
 	renderPalette(elements.palette, serialization.palette);
+	renderDownloadLink(elements.downloadLink, serialization, sourceFileName);
 	elements.reconstructionFigure.hidden = false;
+}
+
+export function renderDownloadLink(
+	link: HTMLAnchorElement,
+	serialization: PixelArtSerialization,
+	sourceFileName: string | undefined,
+): void {
+	const json = JSON.stringify(serialization);
+	link.setAttribute(
+		"href",
+		`data:application/json;charset=utf-8,${encodeURIComponent(json)}`,
+	);
+	link.download = toJsonFilename(sourceFileName);
+	link.hidden = false;
+}
+
+export function toJsonFilename(sourceFileName: string | undefined): string {
+	if (!sourceFileName) {
+		return DEFAULT_DOWNLOAD_FILENAME;
+	}
+	const dotIndex = sourceFileName.lastIndexOf(".");
+	const base =
+		dotIndex > 0 ? sourceFileName.slice(0, dotIndex) : sourceFileName;
+	return `${base}.json`;
 }
 
 function makeSwatch(color: SerializedPaletteColor): HTMLElement {

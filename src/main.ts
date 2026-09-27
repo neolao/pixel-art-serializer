@@ -24,6 +24,7 @@ if (app) {
         </figure>
       </div>
       <div id="palette" aria-label="Color palette" hidden></div>
+      <a id="download-json" download hidden>Download JSON</a>
     </main>
   `;
 
@@ -37,6 +38,7 @@ if (app) {
 		"#reconstruction-canvas",
 	);
 	const palette = app.querySelector<HTMLElement>("#palette");
+	const downloadLink = app.querySelector<HTMLAnchorElement>("#download-json");
 
 	if (
 		input &&
@@ -44,24 +46,28 @@ if (app) {
 		error &&
 		reconstructionFigure &&
 		reconstructionCanvas &&
-		palette
+		palette &&
+		downloadLink
 	) {
 		const resultElements: ResultElements = {
 			reconstructionFigure,
 			reconstructionCanvas,
 			palette,
+			downloadLink,
 		};
+		let currentFileName: string | undefined;
 
 		input.addEventListener("change", () => {
 			resetResult(resultElements);
 			const file = input.files?.[0];
+			currentFileName = file?.name;
 			void handleImageSelection(file, { preview, error }).finally(() => {
 				input.value = "";
 			});
 		});
 
 		preview.addEventListener("load", () => {
-			displayResult(preview, resultElements);
+			displayResult(preview, resultElements, currentFileName);
 		});
 	}
 }

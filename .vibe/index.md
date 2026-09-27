@@ -7,7 +7,7 @@
 - [`modules/grid-detection.md`](modules/grid-detection.md) — detects an image's logical pixel grid size
 - [`modules/palette-extraction.md`](modules/palette-extraction.md) — extracts and indexes an image's color palette from its detected grid
 - [`modules/serializer.md`](modules/serializer.md) — combines the detected grid and palette into one JSON description of the image
-- [`modules/result.md`](modules/result.md) — displays the reconstructed image and color palette next to the original, and runs the pipeline that produces them
+- [`modules/result.md`](modules/result.md) — displays the reconstructed image, color palette, and JSON download link next to the original, and runs the pipeline that produces them
 
 ## Observed patterns
 - Vite entry point pattern: `src/main.ts` queries `#app` and sets its `innerHTML` directly (no framework, no virtual DOM)
@@ -18,6 +18,7 @@
 - A step that needs per-cell attribution to already-computed results (`serializer.ts` assigning palette indices) re-derives it by nearest-match lookup instead of threading position bookkeeping through an upstream pipeline that doesn't otherwise need it (see `decisions/006-pixel-indices-by-nearest-palette-color.md`)
 - A result derived from user-provided data is cleared synchronously at the start of handling a new input, before that input's outcome is known, rather than when a new result is ready — so a stale result never lingers next to a fresh error (`main.ts`'s `change` handler calling `resetResult`)
 - The reconstruction is drawn straight to a live `<canvas>` rather than round-tripped through `toDataURL`/`<img>`, to avoid re-encoding drift between the palette JSON and what's displayed (see `decisions/007-reconstruction-rendered-to-live-canvas.md`)
+- A small download payload is built as a `data:` URL rather than a `Blob` object URL, so the whole feature (content included) stays coverable by automated tests instead of falling into the project's real-browser-only verification path (see `decisions/008-json-download-via-data-url.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models

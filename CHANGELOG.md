@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Users can now download the generated pixel grid, palette, and per-pixel color data as a `.json` file, named after the source image. The download link only appears once a result has been generated, and disappears as soon as a new image is selected.
+
 ## [0.5.0] - 2026-09-27
 
 ### Added

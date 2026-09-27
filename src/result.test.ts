@@ -1,13 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { type ResultElements, renderPalette, resetResult } from "./result";
-import type { SerializedPaletteColor } from "./serializer";
+import {
+	type ResultElements,
+	renderDownloadLink,
+	renderPalette,
+	resetResult,
+	toJsonFilename,
+} from "./result";
+import type {
+	PixelArtSerialization,
+	SerializedPaletteColor,
+} from "./serializer";
 
 function makeResultElements(): ResultElements {
 	const reconstructionFigure = document.createElement("figure");
 	const reconstructionCanvas = document.createElement("canvas");
 	const palette = document.createElement("div");
+	const downloadLink = document.createElement("a");
 	reconstructionFigure.appendChild(reconstructionCanvas);
-	return { reconstructionFigure, reconstructionCanvas, palette };
+	return { reconstructionFigure, reconstructionCanvas, palette, downloadLink };
+}
+
+function readDownloadedJson(link: HTMLAnchorElement): unknown {
+	const href = link.getAttribute("href") ?? "";
+	const prefix = "data:application/json;charset=utf-8,";
+	if (!href.startsWith(prefix)) {
+		throw new Error(`unexpected href: ${href}`);
+	}
+	return JSON.parse(decodeURIComponent(href.slice(prefix.length)));
 }
 
 describe("renderPalette", () => {
@@ -80,5 +99,76 @@ describe("resetResult", () => {
 
 		expect(() => resetResult(elements)).not.toThrow();
 		expect(elements.reconstructionFigure.hidden).toBe(true);
+	});
+
+	it("hides the download link and removes its previous data, so a stale download can't linger", () => {
+		const elements = makeResultElements();
+		const serialization: PixelArtSerialization = {
+			gridWidth: 1,
+			gridHeight: 1,
+			palette: [{ index: 0, hex: "#ff0000", alpha: 255 }],
+			pixels: [0],
+		};
+		renderDownloadLink(elements.downloadLink, serialization, "cat.png");
+
+		resetResult(elements);
+
+		expect(elements.downloadLink.hidden).toBe(true);
+		expect(elements.downloadLink.getAttribute("href")).toBeNull();
+	});
+});
+
+describe("renderDownloadLink", () => {
+	const serialization: PixelArtSerialization = {
+		gridWidth: 2,
+		gridHeight: 1,
+		palette: [
+			{ index: 0, hex: "#ff0000", alpha: 255 },
+			{ index: 1, hex: "#00ff00", alpha: 128 },
+		],
+		pixels: [0, 1],
+	};
+
+	it("makes the link downloadable with content matching exactly the current result", () => {
+		const link = document.createElement("a");
+
+		renderDownloadLink(link, serialization, "cat.png");
+
+		expect(link.hidden).toBe(false);
+		expect(readDownloadedJson(link)).toEqual(serialization);
+	});
+
+	it("names the downloaded file after the source image, with a .json extension", () => {
+		const link = document.createElement("a");
+
+		renderDownloadLink(link, serialization, "cat.png");
+
+		expect(link.download).toBe("cat.json");
+	});
+
+	it("falls back to a sensible default name when no source file name is available", () => {
+		const link = document.createElement("a");
+
+		renderDownloadLink(link, serialization, undefined);
+
+		expect(link.download).toBe("pixel-art.json");
+	});
+});
+
+describe("toJsonFilename", () => {
+	it("replaces the source file's extension with .json", () => {
+		expect(toJsonFilename("cat.png")).toBe("cat.json");
+	});
+
+	it("only replaces the last extension when the name has several dots", () => {
+		expect(toJsonFilename("archive.tar.gz")).toBe("archive.tar.json");
+	});
+
+	it("appends .json when the source file has no extension", () => {
+		expect(toJsonFilename("cat")).toBe("cat.json");
+	});
+
+	it("falls back to a default name when no source file name is available", () => {
+		expect(toJsonFilename(undefined)).toBe("pixel-art.json");
 	});
 });

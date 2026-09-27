@@ -97,3 +97,9 @@ h1 {
 	position: absolute;
 	inset: 0;
 }
+
+#download-json {
+	display: inline-block;
+	margin-top: 16px;
+	color: var(--text-h);
+}
