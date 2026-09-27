@@ -8,7 +8,7 @@
 - [`modules/palette-extraction.md`](modules/palette-extraction.md) — extracts and indexes an image's color palette from its detected grid, always reserving a transparent first entry
 - [`modules/serializer.md`](modules/serializer.md) — combines the detected grid and palette into one JSON description of the image
 - [`modules/confidence.md`](modules/confidence.md) — scores how likely an image is to actually be pixel art, from its grid regularity and palette size
-- [`modules/result.md`](modules/result.md) — runs the detection pipeline and renders the reconstructed image, interactive color palette, JSON download link, and confidence verdict
+- [`modules/result.md`](modules/result.md) — runs the detection pipeline and renders the reconstructed image, its detected grid size, interactive color palette, JSON download link, and confidence verdict
 - [`modules/palette-editor.md`](modules/palette-editor.md) — pure add/remove/modify/recolor operations on an already-serialized result
 - [`modules/reconstruction-editor.md`](modules/reconstruction-editor.md) — wires manual palette and pixel editing to the screen, re-rendering on every edit
 

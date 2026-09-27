@@ -22,6 +22,7 @@ export interface ResultElements {
 	palette: HTMLElement;
 	downloadLink: HTMLAnchorElement;
 	confidence: HTMLElement;
+	gridSize: HTMLElement;
 }
 
 const DEFAULT_DOWNLOAD_FILENAME = "pixel-art.json";
@@ -34,6 +35,8 @@ export function resetResult(elements: ResultElements): void {
 	elements.downloadLink.removeAttribute("href");
 	elements.confidence.hidden = true;
 	elements.confidence.textContent = "";
+	elements.gridSize.hidden = true;
+	elements.gridSize.textContent = "";
 	const context = elements.reconstructionCanvas.getContext("2d");
 	context?.clearRect(
 		0,
@@ -113,6 +116,14 @@ export function computeDetection(image: HTMLImageElement): DetectionResult {
 	const palette = extractColorPalette(pixelData, grid);
 	const serialization = serializePixelArt(pixelData, grid, palette);
 	return { grid, palette, serialization };
+}
+
+export function renderGridSize(
+	element: HTMLElement,
+	serialization: PixelArtSerialization,
+): void {
+	element.textContent = `${serialization.gridWidth} × ${serialization.gridHeight} pixels`;
+	element.hidden = false;
 }
 
 export function renderConfidence(

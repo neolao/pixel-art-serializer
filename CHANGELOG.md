@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The reconstruction now shows its detected grid size (width × height, in logical pixels), so users can immediately see how the image was decomposed.
+
 ## [0.11.0] - 2026-09-27
 
 ### Added

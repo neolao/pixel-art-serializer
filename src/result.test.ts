@@ -5,6 +5,7 @@ import {
 	type ResultElements,
 	renderConfidence,
 	renderDownloadLink,
+	renderGridSize,
 	renderPalette,
 	resetResult,
 	toJsonFilename,
@@ -20,6 +21,7 @@ function makeResultElements(): ResultElements {
 	const palette = document.createElement("div");
 	const downloadLink = document.createElement("a");
 	const confidence = document.createElement("p");
+	const gridSize = document.createElement("p");
 	reconstructionFigure.appendChild(reconstructionCanvas);
 	return {
 		reconstructionFigure,
@@ -27,6 +29,20 @@ function makeResultElements(): ResultElements {
 		palette,
 		downloadLink,
 		confidence,
+		gridSize,
+	};
+}
+
+function makeSerialization(
+	gridWidth: number,
+	gridHeight: number,
+): PixelArtSerialization {
+	return {
+		formatVersion: 1,
+		gridWidth,
+		gridHeight,
+		palette: [{ index: 0, color: "#ff0000ff", reserved: false }],
+		pixels: new Array(gridWidth * gridHeight).fill(0),
 	};
 }
 
@@ -354,6 +370,43 @@ describe("resetResult", () => {
 
 		expect(elements.confidence.hidden).toBe(true);
 		expect(elements.confidence.textContent).toBe("");
+	});
+
+	it("hides the grid size and clears its previous text, so a stale size can't linger", () => {
+		const elements = makeResultElements();
+		renderGridSize(elements.gridSize, makeSerialization(16, 16));
+
+		resetResult(elements);
+
+		expect(elements.gridSize.hidden).toBe(true);
+		expect(elements.gridSize.textContent).toBe("");
+	});
+});
+
+describe("renderGridSize", () => {
+	it("shows the detected grid's width and height, in that order, as a plain-word size", () => {
+		const element = document.createElement("p");
+
+		renderGridSize(element, makeSerialization(16, 16));
+
+		expect(element.hidden).toBe(false);
+		expect(element.textContent).toBe("16 × 16 pixels");
+	});
+
+	it("keeps width before height for a non-square grid, never swapped", () => {
+		const element = document.createElement("p");
+
+		renderGridSize(element, makeSerialization(32, 8));
+
+		expect(element.textContent).toBe("32 × 8 pixels");
+	});
+
+	it("renders a single-logical-pixel grid the same way as any other size", () => {
+		const element = document.createElement("p");
+
+		renderGridSize(element, makeSerialization(1, 1));
+
+		expect(element.textContent).toBe("1 × 1 pixels");
 	});
 });
 

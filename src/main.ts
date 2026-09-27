@@ -8,6 +8,7 @@ import {
 	computeDetection,
 	type ResultElements,
 	renderConfidence,
+	renderGridSize,
 	resetResult,
 } from "./result";
 import { handleImageSelection } from "./upload";
@@ -30,7 +31,9 @@ if (app) {
           <canvas
             id="reconstruction-canvas"
             aria-label="Image reconstructed from the extracted grid and palette"
+            aria-describedby="grid-size"
           ></canvas>
+          <p id="grid-size" hidden></p>
         </figure>
       </div>
       <p id="confidence" role="status" hidden></p>
@@ -56,6 +59,7 @@ if (app) {
 	const palette = app.querySelector<HTMLElement>("#palette");
 	const downloadLink = app.querySelector<HTMLAnchorElement>("#download-json");
 	const confidence = app.querySelector<HTMLElement>("#confidence");
+	const gridSize = app.querySelector<HTMLElement>("#grid-size");
 	const addColorInput = app.querySelector<HTMLInputElement>("#add-color-input");
 	const addColorButton =
 		app.querySelector<HTMLButtonElement>("#add-color-button");
@@ -72,6 +76,7 @@ if (app) {
 		palette &&
 		downloadLink &&
 		confidence &&
+		gridSize &&
 		addColorInput &&
 		addColorButton &&
 		mergeToggleButton
@@ -82,6 +87,7 @@ if (app) {
 			palette,
 			downloadLink,
 			confidence,
+			gridSize,
 		};
 		const editorElements: EditorElements = {
 			reconstructionCanvas,
@@ -112,6 +118,7 @@ if (app) {
 			} = computeDetection(preview);
 			editor.load(serialization, currentFileName);
 			renderConfidence(confidence, computeConfidence(grid, extractedPalette));
+			renderGridSize(gridSize, serialization);
 			reconstructionFigure.hidden = false;
 		});
 	}
