@@ -2,6 +2,8 @@
 
 A static website that takes an image and turns it into a JSON description of its pixels, to help detect whether the image is pixel art.
 
+**Live site:** https://neolao.github.io/pixel-art-serializer/
+
 <!-- vibe:begin:features -->
 - Select an image file and see an instant preview of it on the page.
 - Choosing a file that isn't a supported image (including SVG, which isn't pixel data) shows a clear error message instead of a broken preview.
