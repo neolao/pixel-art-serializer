@@ -2,6 +2,8 @@
 	--text: #6b6375;
 	--text-h: #08060d;
 	--bg: #fff;
+	--swatch-border: color-mix(in srgb, var(--text) 30%, transparent);
+	--radius: 4px;
 
 	font:
 		18px / 145% system-ui,
@@ -34,4 +36,64 @@ main {
 
 h1 {
 	color: var(--text-h);
+}
+
+.comparison {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 16px;
+	margin-top: 24px;
+}
+
+.comparison figure {
+	margin: 0;
+}
+
+.comparison figcaption {
+	font-size: 14px;
+	margin-bottom: 8px;
+}
+
+.comparison img,
+.comparison canvas {
+	width: 100%;
+	height: auto;
+	border-radius: var(--radius);
+}
+
+#reconstruction-canvas {
+	image-rendering: pixelated;
+}
+
+#palette {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 16px;
+	max-height: 88px;
+	overflow-y: auto;
+}
+
+.swatch {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+}
+
+.swatch-box {
+	position: relative;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border: 1px solid var(--swatch-border);
+	border-radius: var(--radius);
+	background-image: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%);
+	background-size: 8px 8px;
+	overflow: hidden;
+}
+
+.swatch-fill {
+	position: absolute;
+	inset: 0;
 }

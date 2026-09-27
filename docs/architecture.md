@@ -2,23 +2,26 @@
 
 # Architecture
 
-The app is a small, framework-free TypeScript site built with Vite. The upload flow has three source modules, each with one job; a separate, not-yet-connected pipeline detects an image's pixel grid and its color palette.
+The app is a small, framework-free TypeScript site built with Vite. Selecting an image both shows an instant preview and, once that preview has decoded, runs the full detection pipeline and displays its result next to the original.
 
 ```mermaid
 flowchart LR
     main["main.ts (entry point)"] -->|wires the change event| upload["upload.ts (upload orchestration)"]
     upload -->|reads the file| loader["image-loader.ts (file reading + validation)"]
     upload -->|updates| dom["preview / error DOM elements"]
-    pixeldata["pixel-data.ts (canvas pixel extraction)"] -.not yet wired in.-> griddetect["grid-detection.ts (grid size detection)"]
-    griddetect -.not yet wired in.-> palette["palette-extraction.ts (color palette extraction)"]
+    main -->|on preview load| result["result.ts (result orchestration + rendering)"]
+    result --> pixeldata["pixel-data.ts (canvas pixel extraction)"]
+    pixeldata --> griddetect["grid-detection.ts (grid size detection)"]
+    griddetect --> palette["palette-extraction.ts (color palette extraction)"]
     palette -->|perceptual color distance| color["color.ts (sRGB to Lab conversion)"]
     griddetect --> serializer["serializer.ts (JSON serialization)"]
     palette --> serializer
+    serializer --> result
 ```
 
 ## Modules
 
-**`main.ts`** — Bootstraps the page: renders the upload UI (title, description, file input, preview image, error message) into `#app`, and wires the file input's `change` event to `upload.ts`. Resets the input's value after every selection so choosing the same file twice in a row still triggers a change event.
+**`main.ts`** — Bootstraps the page: renders the upload UI (title, description, file input, preview image, error message, result comparison, palette) into `#app`, and wires the file input's `change` event to `upload.ts`. Resets the input's value after every selection so choosing the same file twice in a row still triggers a change event. Also wires the preview image's `load` event to `result.ts`'s orchestrator, and clears the previous result synchronously on every new selection, before the new file's outcome is known.
 
 **`upload.ts`** — Orchestrates one file selection: does nothing if no file was chosen (the picker was cancelled), rejects unsupported types, reads valid images and shows the preview, and shows an error if reading or displaying the image fails. Takes the preview and error elements as plain arguments rather than looking them up itself, which is what makes it testable without spinning up the whole page.
 
@@ -34,14 +37,14 @@ flowchart LR
 
 **`serializer.ts`** — Pure function `serializePixelArt`: given the raw pixel data, the detected grid, and the extracted palette, resamples each grid cell's color (the same way `palette-extraction.ts` samples it) and assigns it to the closest palette entry in Lab space, so a pixel whose original shade was folded into another during palette extraction still ends up pointing at the entry that absorbed it. Returns one JSON-ready object: grid width/height, the palette as `{ index, hex, alpha }` entries, and a flat, row-major array of one palette index per logical pixel.
 
-None of `grid-detection.ts`, `pixel-data.ts`, `palette-extraction.ts`, or `serializer.ts` is called from `main.ts`/`upload.ts` yet; a later feature wires them into the upload flow and displays the result.
+**`result.ts`** — Ties the whole pipeline to the screen. `resetResult` hides the reconstruction and palette and clears any previous swatches (called on every new file selection, before that file's outcome is known, so no stale comparison ever lingers). `renderPalette` builds one labeled color swatch per palette entry, in index order, each showing its hex code as text and its color over a checkerboard backdrop so a transparent color reads as transparent rather than as a flat, possibly-misleading opaque one. `renderReconstruction` draws the reconstruction straight onto a `<canvas>` sized to exactly the grid's width and height (one canvas pixel per logical pixel, styled with `image-rendering: pixelated` and the grid's own aspect ratio), reading colors only from the serialized JSON so it can never be influenced by the original image's actual pixels — see `.vibe/decisions/007-reconstruction-rendered-to-live-canvas.md`. `displayResult` is the orchestrator: it runs `pixel-data.ts` → `grid-detection.ts` → `palette-extraction.ts` → `serializer.ts` and feeds the result to the two render functions above. `resetResult`/`renderPalette` are covered by automated tests; `renderReconstruction`/`displayResult` are not, for the same reason as `pixel-data.ts` — see [docs/testing.md](testing.md).
 
 ## Data flow
 
 **Upload/preview (live):**
 1. The user picks a file in the `#image-input` field.
-2. `main.ts`'s change handler reads `input.files[0]` and calls `upload.ts`.
+2. `main.ts`'s change handler calls `resetResult` immediately, then reads `input.files[0]` and calls `upload.ts`.
 3. `upload.ts` validates the type via `image-loader.ts`; on success it reads the file (also via `image-loader.ts`) and sets the preview image's `src` to the resulting data URL; on failure it shows an inline error and hides the preview.
-4. If the file passed the type check but isn't actually a valid image (a corrupted file), the preview `<img>`'s own `onerror` handler catches the browser's decode failure and swaps back to the error message.
+4. If the file passed the type check but isn't actually a valid image (a corrupted file), the preview `<img>`'s own `onerror` handler catches the browser's decode failure and swaps back to the error message. Either way, the result section stays hidden — `displayResult` only ever runs after a successful decode.
 
-**Grid detection, palette extraction, and JSON serialization (built, not yet connected):** given a loaded `<img>`, `pixel-data.ts` reads its raw pixels via canvas, `grid-detection.ts` turns that into a logical pixel size and grid width/height, `palette-extraction.ts` uses that grid to derive the image's indexed color palette, and `serializer.ts` combines the grid and the palette into the final JSON description.
+**Grid detection, palette extraction, JSON serialization, and result display (live):** once the preview `<img>` fires its `load` event (a successful decode), `main.ts` calls `result.ts`'s `displayResult`, which reads the image's raw pixels via canvas (`pixel-data.ts`), detects its logical pixel grid (`grid-detection.ts`), extracts its color palette (`palette-extraction.ts`), serializes both into JSON (`serializer.ts`), then renders the reconstruction and the palette swatches next to the original.

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- After uploading an image, users can now see it side by side with a reconstruction built purely from the detected pixel grid and color palette, plus the indexed color palette shown as labeled swatches. The comparison clears as soon as a new image is selected, so no stale result lingers.
+
 ## [0.4.0] - 2026-09-27
 
 ### Added
