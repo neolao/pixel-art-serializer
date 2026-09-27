@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 depends_on: [002, 003]
 ---
 # Compute Pixel Art Confidence Score
