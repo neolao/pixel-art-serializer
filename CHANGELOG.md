@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-09-27
+
 ### Fixed
 
 - Fixed a color sampled from an anti-aliased edge (e.g. a black outline) rendering semi-transparent instead of solid — it now reports full opacity whenever the same color is fully opaque elsewhere in the image, while a color that is genuinely and consistently semi-transparent throughout keeps its own opacity unchanged.
@@ -77,7 +79,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.0...v0.8.1
