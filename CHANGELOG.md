@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed dark colors (near-black) not being recognized as a single color in the palette — an image's black outline could show up as many separate near-black colors instead of one.
+
 ## [0.8.0] - 2026-09-27
 
 ### Added

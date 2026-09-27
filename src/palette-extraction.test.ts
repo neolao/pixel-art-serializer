@@ -69,6 +69,26 @@ describe("extractColorPalette", () => {
 		expect(result.colors).toHaveLength(1);
 	});
 
+	it("folds near-identical dark colors caused by compression artifacts into a single palette entry, the same way it already does for light colors", () => {
+		// 2x1 logical grid: two near-black cells one RGB nudge apart (mirrors
+		// anti-aliasing noise on a black outline, as opposed to the
+		// near-midtone-gray case above).
+		const image = makeImage(2, 1, (x) =>
+			x === 0 ? [0, 0, 0, 255] : [1, 1, 1, 255],
+		);
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 2,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+
+		const result = extractColorPalette(image, grid);
+
+		expect(result.colorCount).toBe(1);
+		expect(result.colors).toHaveLength(1);
+	});
+
 	it("returns a palette of exactly one color for a flat single-color image", () => {
 		const image = makeImage(6, 6, () => [42, 200, 17, 255]);
 		const grid: GridDetectionResult = {

@@ -30,7 +30,7 @@ function srgbToLinear(c: number): number {
 }
 
 function labF(t: number): number {
-	return t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27) * t + 16 / 116;
+	return t > 216 / 24389 ? Math.cbrt(t) : ((24389 / 27) * t + 16) / 116;
 }
 
 export function labDistance(a: Lab, b: Lab): number {
