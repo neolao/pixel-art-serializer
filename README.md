@@ -49,5 +49,6 @@ npm run preview
 
 <!-- vibe:begin:docs-index -->
 - [docs/architecture.md](docs/architecture.md) — how the upload/preview flow is structured, module by module.
+- [docs/deployment.md](docs/deployment.md) — how the site is built and published to GitHub Pages.
 - [docs/testing.md](docs/testing.md) — what the test suite covers, and what's verified manually instead.
 <!-- vibe:end:docs-index -->

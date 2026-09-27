@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Set up automatic deployment: every push to `main` builds and publishes the site to GitHub Pages, without ever overwriting a working deployment with a broken build.
+
 ## [0.7.0] - 2026-09-27
 
 ### Added
