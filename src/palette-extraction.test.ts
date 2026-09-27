@@ -22,7 +22,46 @@ function makeImage(
 }
 
 describe("extractColorPalette", () => {
-	it("returns each distinct color with the correct total count for an image with clearly separated colors", () => {
+	it("always reserves index 0 for full transparency, even for a fully-opaque image", () => {
+		const image = makeImage(2, 1, (x) =>
+			x === 0 ? [255, 0, 0, 255] : [0, 255, 0, 255],
+		);
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 2,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+
+		const result = extractColorPalette(image, grid);
+
+		expect(result.colors[0]).toEqual({ index: 0, r: 0, g: 0, b: 0, a: 0 });
+	});
+
+	it("collapses every fully-transparent sample into the single reserved index 0, regardless of its underlying RGB", () => {
+		// Two cells that are both fully transparent but carry different
+		// leftover RGB bytes (as a real decoder might), plus one opaque cell.
+		const image = makeImage(3, 1, (x) => {
+			if (x === 0) return [255, 0, 0, 0];
+			if (x === 1) return [0, 255, 0, 0];
+			return [10, 20, 30, 255];
+		});
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 3,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+
+		const result = extractColorPalette(image, grid);
+
+		const transparentEntries = result.colors.filter((c) => c.a === 0);
+		expect(transparentEntries).toHaveLength(1);
+		expect(transparentEntries[0]).toEqual({ index: 0, r: 0, g: 0, b: 0, a: 0 });
+		expect(result.colorCount).toBe(2);
+	});
+
+	it("returns each distinct opaque color with the correct total count for an image with clearly separated colors", () => {
 		// 4x4 image, 2x2 logical grid: red / green top row, blue / yellow bottom row
 		const image = makeImage(4, 4, (x, y) => {
 			const left = x < 2;
@@ -41,8 +80,9 @@ describe("extractColorPalette", () => {
 
 		const result = extractColorPalette(image, grid);
 
-		expect(result.colorCount).toBe(4);
-		expect(result.colors).toHaveLength(4);
+		// 4 opaque colors + the always-reserved transparent entry at index 0
+		expect(result.colorCount).toBe(5);
+		expect(result.colors).toHaveLength(5);
 		const rgbs = result.colors.map(({ r, g, b, a }) => [r, g, b, a]);
 		expect(rgbs).toContainEqual([255, 0, 0, 255]);
 		expect(rgbs).toContainEqual([0, 255, 0, 255]);
@@ -65,8 +105,10 @@ describe("extractColorPalette", () => {
 
 		const result = extractColorPalette(image, grid);
 
-		expect(result.colorCount).toBe(1);
-		expect(result.colors).toHaveLength(1);
+		// The 2 near-identical opaque samples fold into 1, plus the
+		// always-reserved transparent entry at index 0.
+		expect(result.colorCount).toBe(2);
+		expect(result.colors).toHaveLength(2);
 	});
 
 	it("folds near-identical dark colors caused by compression artifacts into a single palette entry, the same way it already does for light colors", () => {
@@ -85,11 +127,13 @@ describe("extractColorPalette", () => {
 
 		const result = extractColorPalette(image, grid);
 
-		expect(result.colorCount).toBe(1);
-		expect(result.colors).toHaveLength(1);
+		// The 2 near-identical opaque samples fold into 1, plus the
+		// always-reserved transparent entry at index 0.
+		expect(result.colorCount).toBe(2);
+		expect(result.colors).toHaveLength(2);
 	});
 
-	it("returns a palette of exactly one color for a flat single-color image", () => {
+	it("returns a palette of the reserved transparent entry plus exactly one opaque color for a flat single-color image", () => {
 		const image = makeImage(6, 6, () => [42, 200, 17, 255]);
 		const grid: GridDetectionResult = {
 			pixelSize: 2,
@@ -100,8 +144,11 @@ describe("extractColorPalette", () => {
 
 		const result = extractColorPalette(image, grid);
 
-		expect(result.colorCount).toBe(1);
-		expect(result.colors).toEqual([{ index: 0, r: 42, g: 200, b: 17, a: 255 }]);
+		expect(result.colorCount).toBe(2);
+		expect(result.colors).toEqual([
+			{ index: 0, r: 0, g: 0, b: 0, a: 0 },
+			{ index: 1, r: 42, g: 200, b: 17, a: 255 },
+		]);
 	});
 
 	it("completes quickly and returns a bounded palette when grid detection fails and every raw pixel becomes its own cell", () => {

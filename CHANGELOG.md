@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Users can now manually correct the reconstruction: add, remove, or change a palette color, and repaint any pixel by picking a color from the palette. The palette always keeps a dedicated fully-transparent color first, letting pixels be erased even on images with no detected transparency. Every edit updates the reconstruction and the downloadable JSON immediately. The original and reconstruction previews now show a checkerboard behind transparent areas.
+
 ## [0.8.1] - 2026-09-27
 
 ### Fixed

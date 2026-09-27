@@ -1,0 +1,8 @@
+# Module: reconstruction-editor
+
+**Role:** Wires manual palette and pixel editing to the screen: holds the current serialization and active color for one result, and re-renders on every edit.
+**Files:** `src/reconstruction-editor.ts`
+**Exports:** `pixelIndexAt(rect, gridWidth, gridHeight, clientX, clientY): number | null`, `attachPixelPainter(canvas, getSerialization, onPaint): void`, `createReconstructionEditor(elements: EditorElements): ReconstructionEditor`, types `EditorElements`, `ReconstructionEditor`
+**Depends on:** `modules/palette-editor.md`, `modules/result.md`
+
+`pixelIndexAt` is a pure function mapping a click's viewport coordinates to a logical-pixel index, accounting for the canvas being drawn at one unit per logical pixel but displayed scaled up via CSS (`.vibe/decisions/007-reconstruction-rendered-to-live-canvas.md`); covered by automated tests with synthetic rects. `attachPixelPainter` attaches a canvas click listener built on it; tested with a stubbed `getBoundingClientRect`, the same technique `modules/result.md`'s canvas-dependent code can't use for its actual pixel rendering. `createReconstructionEditor` is attached **once** per app lifetime, at startup, to the persistent canvas and "add color" button — not re-created per upload — so listeners never stack across successive images; `load` installs a freshly-detected serialization and re-renders, `reset` clears it so a control used while a new image is still decoding can't silently repaint the previous result. Its DOM-safe wiring (palette rendering, active-color state, download link) is unit-tested against a stubbed 2D canvas context; the actual pixel rendering is verified only in a real browser, per `modules/result.md`.

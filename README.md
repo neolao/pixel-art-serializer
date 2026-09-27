@@ -11,6 +11,8 @@ A static website that takes an image and turns it into a JSON description of its
 - Selecting a new image immediately clears the previous comparison, so no stale result is ever shown alongside a new upload.
 - Download the detected pixel grid, palette, and per-pixel color data as a `.json` file, named after the source image, once a result is ready.
 - See a confidence verdict on whether the uploaded image actually looks like pixel art, with a short explanation of what drove the score.
+- Manually correct the reconstruction: add, remove, or change a palette color, and repaint any pixel by picking a color from the palette. A dedicated fully-transparent color is always available, even on images with no detected transparency, so pixels can be erased. Every edit updates the reconstruction and the downloadable JSON immediately.
+- See transparent areas of the original and reconstructed image clearly, over a checkerboard backdrop.
 <!-- vibe:end:features -->
 
 <!-- vibe:begin:install -->

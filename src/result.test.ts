@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ConfidenceResult } from "./confidence";
 import {
+	type PaletteCallbacks,
 	type ResultElements,
 	renderConfidence,
 	renderDownloadLink,
@@ -38,6 +39,10 @@ function readDownloadedJson(link: HTMLAnchorElement): unknown {
 	return JSON.parse(decodeURIComponent(href.slice(prefix.length)));
 }
 
+function noopCallbacks(): PaletteCallbacks {
+	return { onSelect: vi.fn(), onRemove: vi.fn(), onModify: vi.fn() };
+}
+
 describe("renderPalette", () => {
 	it("renders one visible swatch per palette color, in index order, with its hex code as text", () => {
 		const colors: SerializedPaletteColor[] = [
@@ -47,7 +52,7 @@ describe("renderPalette", () => {
 		];
 		const container = document.createElement("div");
 
-		renderPalette(container, colors);
+		renderPalette(container, colors, null, noopCallbacks());
 
 		const swatches = container.querySelectorAll(".swatch");
 		expect(swatches).toHaveLength(3);
@@ -61,7 +66,12 @@ describe("renderPalette", () => {
 	it("renders exactly one swatch for a single-color palette", () => {
 		const container = document.createElement("div");
 
-		renderPalette(container, [{ index: 0, hex: "#2ac811", alpha: 255 }]);
+		renderPalette(
+			container,
+			[{ index: 0, hex: "#2ac811", alpha: 255 }],
+			null,
+			noopCallbacks(),
+		);
 
 		expect(container.querySelectorAll(".swatch")).toHaveLength(1);
 	});
@@ -69,10 +79,15 @@ describe("renderPalette", () => {
 	it("makes a partially transparent color visually distinct from an opaque one", () => {
 		const container = document.createElement("div");
 
-		renderPalette(container, [
-			{ index: 0, hex: "#336699", alpha: 255 },
-			{ index: 1, hex: "#336699", alpha: 128 },
-		]);
+		renderPalette(
+			container,
+			[
+				{ index: 0, hex: "#336699", alpha: 255 },
+				{ index: 1, hex: "#336699", alpha: 128 },
+			],
+			null,
+			noopCallbacks(),
+		);
 
 		const fills = container.querySelectorAll(".swatch-fill");
 		const opaqueColor = (fills[0] as HTMLElement).style.backgroundColor;
@@ -83,17 +98,115 @@ describe("renderPalette", () => {
 	it("hides the container when given an empty palette", () => {
 		const container = document.createElement("div");
 
-		renderPalette(container, []);
+		renderPalette(container, [], null, noopCallbacks());
 
 		expect(container.querySelectorAll(".swatch")).toHaveLength(0);
 		expect(container.hidden).toBe(true);
+	});
+
+	it("marks the swatch matching the active index, and no other, as active", () => {
+		const container = document.createElement("div");
+		const colors: SerializedPaletteColor[] = [
+			{ index: 0, hex: "#000000", alpha: 0 },
+			{ index: 1, hex: "#ff0000", alpha: 255 },
+		];
+
+		renderPalette(container, colors, 1, noopCallbacks());
+
+		const swatches = [...container.querySelectorAll(".swatch")];
+		expect(swatches[0].classList.contains("active")).toBe(false);
+		expect(swatches[1].classList.contains("active")).toBe(true);
+	});
+
+	it("calls onSelect with a swatch's index when its color box is clicked", () => {
+		const container = document.createElement("div");
+		const callbacks = noopCallbacks();
+		renderPalette(
+			container,
+			[
+				{ index: 0, hex: "#000000", alpha: 0 },
+				{ index: 1, hex: "#ff0000", alpha: 255 },
+			],
+			null,
+			callbacks,
+		);
+
+		const box = container.querySelectorAll(".swatch-box")[1] as HTMLElement;
+		box.click();
+
+		expect(callbacks.onSelect).toHaveBeenCalledWith(1);
+	});
+
+	it("renders no remove or modify control on the reserved transparent swatch", () => {
+		const container = document.createElement("div");
+
+		renderPalette(
+			container,
+			[{ index: 0, hex: "#000000", alpha: 0 }],
+			null,
+			noopCallbacks(),
+		);
+
+		const swatch = container.querySelector(".swatch");
+		expect(swatch?.querySelector(".swatch-remove")).toBeNull();
+		expect(swatch?.querySelector(".swatch-modify")).toBeNull();
+	});
+
+	it("calls onRemove, not onSelect, when a non-transparent swatch's remove button is clicked", () => {
+		const container = document.createElement("div");
+		const callbacks = noopCallbacks();
+		renderPalette(
+			container,
+			[
+				{ index: 0, hex: "#000000", alpha: 0 },
+				{ index: 1, hex: "#ff0000", alpha: 255 },
+			],
+			null,
+			callbacks,
+		);
+
+		const removeButton = container.querySelector(
+			".swatch-remove",
+		) as HTMLButtonElement;
+		removeButton.click();
+
+		expect(callbacks.onRemove).toHaveBeenCalledWith(1);
+		expect(callbacks.onSelect).not.toHaveBeenCalled();
+	});
+
+	it("calls onModify, not onSelect, when a non-transparent swatch's color input changes", () => {
+		const container = document.createElement("div");
+		const callbacks = noopCallbacks();
+		renderPalette(
+			container,
+			[
+				{ index: 0, hex: "#000000", alpha: 0 },
+				{ index: 1, hex: "#ff0000", alpha: 255 },
+			],
+			null,
+			callbacks,
+		);
+
+		const modifyInput = container.querySelector(
+			".swatch-modify",
+		) as HTMLInputElement;
+		modifyInput.value = "#123456";
+		modifyInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+		expect(callbacks.onModify).toHaveBeenCalledWith(1, "#123456");
+		expect(callbacks.onSelect).not.toHaveBeenCalled();
 	});
 });
 
 describe("resetResult", () => {
 	it("hides the reconstruction figure and the palette, and clears previous swatches", () => {
 		const elements = makeResultElements();
-		renderPalette(elements.palette, [{ index: 0, hex: "#ff0000", alpha: 255 }]);
+		renderPalette(
+			elements.palette,
+			[{ index: 0, hex: "#ff0000", alpha: 255 }],
+			null,
+			{ onSelect: vi.fn(), onRemove: vi.fn(), onModify: vi.fn() },
+		);
 		elements.reconstructionFigure.hidden = false;
 
 		resetResult(elements);

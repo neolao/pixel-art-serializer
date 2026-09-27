@@ -20,11 +20,12 @@ Defined in: `src/grid-detection.ts`
 ## PaletteColor
 | Field | Type | Notes |
 |---|---|---|
-| index | number | position of this color in the palette |
+| index | number | stable identifier of this color, not necessarily its array position (a removal can leave a gap) |
 | r | number | red channel, 0-255 |
 | g | number | green channel, 0-255 |
 | b | number | blue channel, 0-255 |
 | a | number | alpha channel, 0-255 |
+Index 0 is always `{r:0,g:0,b:0,a:0}`, the reserved fully-transparent color.
 Defined in: `src/palette-extraction.ts`
 
 ## PaletteExtractionResult
@@ -37,9 +38,10 @@ Defined in: `src/palette-extraction.ts`
 ## SerializedPaletteColor
 | Field | Type | Notes |
 |---|---|---|
-| index | number | position of this color in the palette |
+| index | number | stable identifier of this color, not necessarily its array position (a removal can leave a gap) |
 | hex | string | color as `#rrggbb` |
 | alpha | number | alpha channel, 0-255 |
+Index 0 is always the reserved fully-transparent color (`hex: "#000000"`, `alpha: 0`).
 Defined in: `src/serializer.ts`
 
 ## PixelArtSerialization

@@ -30,14 +30,34 @@ interface ColorCount {
 	count: number;
 }
 
+/**
+ * Reserved for full transparency: always index 0, regardless of whether the
+ * source image has any transparent pixels, so a fully-opaque image can still
+ * be edited to erase pixels to transparent. See
+ * .vibe/decisions/011-palette-always-reserves-transparent-index-zero.md.
+ */
+const TRANSPARENT_COLOR: ColorCount = { r: 0, g: 0, b: 0, a: 0, count: 0 };
+
 export function extractColorPalette(
 	image: PixelImageData,
 	grid: GridDetectionResult,
 ): PaletteExtractionResult {
 	validate(image);
 	const samples = sampleGridCells(image, grid);
-	const merged = mergePerceptuallyCloseColors(samples, MERGE_THRESHOLD_DELTA_E);
-	const colors = merged.map(({ r, g, b, a }, index) => ({ index, r, g, b, a }));
+	const opaqueSamples = samples.filter((sample) => sample.a !== 0);
+	const merged = mergePerceptuallyCloseColors(
+		opaqueSamples,
+		MERGE_THRESHOLD_DELTA_E,
+	);
+	const colors = [TRANSPARENT_COLOR, ...merged].map(
+		({ r, g, b, a }, index) => ({
+			index,
+			r,
+			g,
+			b,
+			a,
+		}),
+	);
 	return { colors, colorCount: colors.length };
 }
 

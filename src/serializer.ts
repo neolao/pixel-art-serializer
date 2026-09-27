@@ -25,16 +25,26 @@ export function serializePixelArt(
 ): PixelArtSerialization {
 	validate(image);
 
-	const paletteLabs: Lab[] = palette.colors.map((color) =>
+	// Index 0 is the reserved transparent entry (see
+	// .vibe/decisions/011-palette-always-reserves-transparent-index-zero.md):
+	// it's matched directly by alpha, never by nearest RGB distance, so a
+	// fully-opaque color that happens to share its RGB (e.g. black) can never
+	// be mistaken for it.
+	const opaqueColors = palette.colors.slice(1);
+	const opaqueLabs: Lab[] = opaqueColors.map((color) =>
 		rgbToLab([color.r, color.g, color.b]),
 	);
 
 	const pixels: number[] = [];
 	for (let cy = 0; cy < grid.gridHeight; cy++) {
 		for (let cx = 0; cx < grid.gridWidth; cx++) {
-			const [r, g, b] = sampleGridCellColor(image, grid, cx, cy);
-			const nearest = nearestPaletteIndex(rgbToLab([r, g, b]), paletteLabs);
-			pixels.push(palette.colors[nearest].index);
+			const [r, g, b, a] = sampleGridCellColor(image, grid, cx, cy);
+			if (a === 0) {
+				pixels.push(palette.colors[0].index);
+				continue;
+			}
+			const nearest = nearestPaletteIndex(rgbToLab([r, g, b]), opaqueLabs);
+			pixels.push(opaqueColors[nearest].index);
 		}
 	}
 

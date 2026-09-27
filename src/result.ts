@@ -1,6 +1,13 @@
-import { type ConfidenceResult, computeConfidence } from "./confidence";
-import { detectPixelGridSize } from "./grid-detection";
-import { extractColorPalette } from "./palette-extraction";
+import type { ConfidenceResult } from "./confidence";
+import {
+	detectPixelGridSize,
+	type GridDetectionResult,
+} from "./grid-detection";
+import { TRANSPARENT_INDEX } from "./palette-editor";
+import {
+	extractColorPalette,
+	type PaletteExtractionResult,
+} from "./palette-extraction";
 import { extractPixelData } from "./pixel-data";
 import {
 	type PixelArtSerialization,
@@ -35,13 +42,23 @@ export function resetResult(elements: ResultElements): void {
 	);
 }
 
+export interface PaletteCallbacks {
+	onSelect: (index: number) => void;
+	onRemove: (index: number) => void;
+	onModify: (index: number, hex: string) => void;
+}
+
 export function renderPalette(
 	container: HTMLElement,
 	palette: readonly SerializedPaletteColor[],
+	activeIndex: number | null,
+	callbacks: PaletteCallbacks,
 ): void {
 	container.innerHTML = "";
 	for (const color of palette) {
-		container.appendChild(makeSwatch(color));
+		container.appendChild(
+			makeSwatch(color, color.index === activeIndex, callbacks),
+		);
 	}
 	container.hidden = palette.length === 0;
 }
@@ -61,32 +78,37 @@ export function renderReconstruction(
 		);
 	}
 
+	// Palette indices are stable identifiers, not array positions — a color
+	// removed by the manual editor leaves a gap rather than compacting the
+	// array (see .vibe/decisions/012-remove-palette-color-erases-to-transparent.md).
+	const colorsByIndex = new Map(
+		serialization.palette.map((color) => [color.index, color]),
+	);
+
 	for (let y = 0; y < serialization.gridHeight; y++) {
 		for (let x = 0; x < serialization.gridWidth; x++) {
 			const paletteIndex =
 				serialization.pixels[y * serialization.gridWidth + x];
-			const color = serialization.palette[paletteIndex];
+			const color = colorsByIndex.get(paletteIndex);
+			if (!color) continue;
 			context.fillStyle = `${color.hex}${color.alpha.toString(16).padStart(2, "0")}`;
 			context.fillRect(x, y, 1, 1);
 		}
 	}
 }
 
-export function displayResult(
-	image: HTMLImageElement,
-	elements: ResultElements,
-	sourceFileName: string | undefined,
-): void {
+export interface DetectionResult {
+	grid: GridDetectionResult;
+	palette: PaletteExtractionResult;
+	serialization: PixelArtSerialization;
+}
+
+export function computeDetection(image: HTMLImageElement): DetectionResult {
 	const pixelData = extractPixelData(image);
 	const grid = detectPixelGridSize(pixelData);
 	const palette = extractColorPalette(pixelData, grid);
 	const serialization = serializePixelArt(pixelData, grid, palette);
-
-	renderReconstruction(elements.reconstructionCanvas, serialization);
-	renderPalette(elements.palette, serialization.palette);
-	renderDownloadLink(elements.downloadLink, serialization, sourceFileName);
-	renderConfidence(elements.confidence, computeConfidence(grid, palette));
-	elements.reconstructionFigure.hidden = false;
+	return { grid, palette, serialization };
 }
 
 export function renderConfidence(
@@ -122,12 +144,17 @@ export function toJsonFilename(sourceFileName: string | undefined): string {
 	return `${base}.json`;
 }
 
-function makeSwatch(color: SerializedPaletteColor): HTMLElement {
+function makeSwatch(
+	color: SerializedPaletteColor,
+	isActive: boolean,
+	callbacks: PaletteCallbacks,
+): HTMLElement {
 	const swatch = document.createElement("div");
-	swatch.className = "swatch";
+	swatch.className = isActive ? "swatch active" : "swatch";
 
 	const box = document.createElement("span");
 	box.className = "swatch-box";
+	box.addEventListener("click", () => callbacks.onSelect(color.index));
 
 	const fill = document.createElement("span");
 	fill.className = "swatch-fill";
@@ -139,5 +166,25 @@ function makeSwatch(color: SerializedPaletteColor): HTMLElement {
 	label.textContent = color.hex;
 
 	swatch.append(box, label);
+
+	if (color.index !== TRANSPARENT_INDEX) {
+		const modify = document.createElement("input");
+		modify.type = "color";
+		modify.className = "swatch-modify";
+		modify.value = color.hex;
+		modify.addEventListener("input", () =>
+			callbacks.onModify(color.index, modify.value),
+		);
+
+		const remove = document.createElement("button");
+		remove.type = "button";
+		remove.className = "swatch-remove";
+		remove.setAttribute("aria-label", `Remove color ${color.hex}`);
+		remove.textContent = "×";
+		remove.addEventListener("click", () => callbacks.onRemove(color.index));
+
+		swatch.append(modify, remove);
+	}
+
 	return swatch;
 }

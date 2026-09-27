@@ -1,5 +1,15 @@
 import "./style.css";
-import { displayResult, type ResultElements, resetResult } from "./result";
+import { computeConfidence } from "./confidence";
+import {
+	createReconstructionEditor,
+	type EditorElements,
+} from "./reconstruction-editor";
+import {
+	computeDetection,
+	type ResultElements,
+	renderConfidence,
+	resetResult,
+} from "./result";
 import { handleImageSelection } from "./upload";
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -25,6 +35,10 @@ if (app) {
       </div>
       <p id="confidence" role="status" hidden></p>
       <div id="palette" aria-label="Color palette" hidden></div>
+      <p class="palette-add">
+        <input id="add-color-input" type="color" value="#000000" />
+        <button id="add-color-button" type="button">Add color</button>
+      </p>
       <a id="download-json" download hidden>Download JSON</a>
     </main>
   `;
@@ -41,6 +55,9 @@ if (app) {
 	const palette = app.querySelector<HTMLElement>("#palette");
 	const downloadLink = app.querySelector<HTMLAnchorElement>("#download-json");
 	const confidence = app.querySelector<HTMLElement>("#confidence");
+	const addColorInput = app.querySelector<HTMLInputElement>("#add-color-input");
+	const addColorButton =
+		app.querySelector<HTMLButtonElement>("#add-color-button");
 
 	if (
 		input &&
@@ -50,7 +67,9 @@ if (app) {
 		reconstructionCanvas &&
 		palette &&
 		downloadLink &&
-		confidence
+		confidence &&
+		addColorInput &&
+		addColorButton
 	) {
 		const resultElements: ResultElements = {
 			reconstructionFigure,
@@ -59,10 +78,19 @@ if (app) {
 			downloadLink,
 			confidence,
 		};
+		const editorElements: EditorElements = {
+			reconstructionCanvas,
+			palette,
+			downloadLink,
+			addColorInput,
+			addColorButton,
+		};
+		const editor = createReconstructionEditor(editorElements);
 		let currentFileName: string | undefined;
 
 		input.addEventListener("change", () => {
 			resetResult(resultElements);
+			editor.reset();
 			const file = input.files?.[0];
 			currentFileName = file?.name;
 			void handleImageSelection(file, { preview, error }).finally(() => {
@@ -71,7 +99,14 @@ if (app) {
 		});
 
 		preview.addEventListener("load", () => {
-			displayResult(preview, resultElements, currentFileName);
+			const {
+				grid,
+				palette: extractedPalette,
+				serialization,
+			} = computeDetection(preview);
+			editor.load(serialization, currentFileName);
+			renderConfidence(confidence, computeConfidence(grid, extractedPalette));
+			reconstructionFigure.hidden = false;
 		});
 	}
 }

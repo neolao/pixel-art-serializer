@@ -45,7 +45,8 @@ describe("serializePixelArt", () => {
 
 		expect(result.gridWidth).toBe(2);
 		expect(result.gridHeight).toBe(2);
-		expect(result.palette).toHaveLength(4);
+		// 4 opaque colors + the always-reserved transparent entry at index 0
+		expect(result.palette).toHaveLength(5);
 		const hexes = result.palette.map((c) => c.hex);
 		expect(hexes).toContain("#ff0000");
 		expect(hexes).toContain("#00ff00");
@@ -65,7 +66,7 @@ describe("serializePixelArt", () => {
 		expect(colorAtPixelIndex(3)).toBe("#ffff00"); // bottom-right cell
 	});
 
-	it("assigns every pixel to the single palette entry for a flat single-color image", () => {
+	it("assigns every pixel to the single opaque palette entry for a flat single-color image", () => {
 		const image = makeImage(6, 6, () => [42, 200, 17, 255]);
 		const grid: GridDetectionResult = {
 			pixelSize: 2,
@@ -77,8 +78,11 @@ describe("serializePixelArt", () => {
 
 		const result = serializePixelArt(image, grid, palette);
 
-		expect(result.palette).toEqual([{ index: 0, hex: "#2ac811", alpha: 255 }]);
-		expect(result.pixels).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+		expect(result.palette).toEqual([
+			{ index: 0, hex: "#000000", alpha: 0 },
+			{ index: 1, hex: "#2ac811", alpha: 255 },
+		]);
+		expect(result.pixels).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1]);
 	});
 
 	it("reassigns every pixel to the merged palette entry when its original shade was folded away", () => {
@@ -98,8 +102,34 @@ describe("serializePixelArt", () => {
 
 		const result = serializePixelArt(image, grid, palette);
 
-		expect(result.palette).toHaveLength(1);
-		expect(result.pixels).toEqual([0, 0]);
+		// The reserved transparent entry + the single merged opaque color
+		expect(result.palette).toHaveLength(2);
+		expect(result.pixels).toEqual([1, 1]);
+	});
+
+	it("assigns a pixel sampled as fully transparent to the reserved index 0, never to the nearest-color opaque match", () => {
+		// A fully-transparent pixel happens to carry pure-black RGB bytes,
+		// which is also the exact RGB the reserved transparent entry stores.
+		// Nearest-color matching (which only compares RGB) must not be
+		// allowed to route it to an opaque black palette entry instead.
+		const image = makeImage(2, 1, (x) =>
+			x === 0 ? [0, 0, 0, 0] : [0, 0, 0, 255],
+		);
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 2,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+		const palette = extractColorPalette(image, grid);
+
+		const result = serializePixelArt(image, grid, palette);
+
+		expect(result.palette).toEqual([
+			{ index: 0, hex: "#000000", alpha: 0 },
+			{ index: 1, hex: "#000000", alpha: 255 },
+		]);
+		expect(result.pixels).toEqual([0, 1]);
 	});
 
 	it("throws when the pixel data length does not match the image dimensions", () => {

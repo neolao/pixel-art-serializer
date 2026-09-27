@@ -59,10 +59,16 @@ h1 {
 	width: 100%;
 	height: auto;
 	border-radius: var(--radius);
+	background-image: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%);
+	background-size: 8px 8px;
 }
 
 #reconstruction-canvas {
 	image-rendering: pixelated;
+}
+
+#reconstruction-canvas.painting {
+	cursor: crosshair;
 }
 
 #palette {
@@ -96,6 +102,39 @@ h1 {
 .swatch-fill {
 	position: absolute;
 	inset: 0;
+}
+
+.swatch.active .swatch-box {
+	outline: 2px solid var(--text-h);
+	outline-offset: 1px;
+}
+
+.swatch-modify {
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: 1px solid var(--swatch-border);
+	border-radius: var(--radius);
+	background: none;
+}
+
+.swatch-remove {
+	width: 20px;
+	height: 20px;
+	line-height: 1;
+	border: 1px solid var(--swatch-border);
+	border-radius: var(--radius);
+	background: none;
+	color: var(--text);
+	cursor: pointer;
+}
+
+.palette-add {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 8px;
 }
 
 #download-json {

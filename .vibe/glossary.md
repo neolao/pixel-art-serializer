@@ -15,9 +15,14 @@ The indexed set of distinct colors a piece of pixel art actually uses, sampled o
 _Sources: `src/palette-extraction.ts`_
 
 ## Reconstruction
-The image rebuilt purely from the detected pixel grid and color palette, one flat-colored block per logical pixel, with no reference back to the original image's raw pixels. Shown next to the original upload so a person can visually judge whether the detected grid and palette actually capture the artwork.
+The image rebuilt purely from the detected pixel grid and color palette, one flat-colored block per logical pixel, with no reference back to the original image's raw pixels. Shown next to the original upload so a person can visually judge whether the detected grid and palette actually capture the artwork, and can manually correct it by editing the palette or repainting individual pixels when detection got it wrong.
 **Do not confuse with:** the original uploaded image — the source the grid and palette were detected from in the first place.
-_Sources: `src/result.ts`_
+_Sources: `src/result.ts`, `src/reconstruction-editor.ts`_
+
+## Reserved transparent color
+The color palette's first entry, always present and always fully transparent, regardless of whether the source image has any transparency of its own. Lets a person erase a reconstructed pixel to transparent even on a fully-opaque image. It can never be removed, changed to another color, or displaced from that position by another color.
+**Do not confuse with:** a color palette that happens to contain a transparent entry because the source image itself uses transparency — this one is always present on top of whatever the image actually contains.
+_Sources: `src/palette-extraction.ts`, `src/palette-editor.ts`_
 
 ## Confidence score
 A verdict on whether an uploaded image actually looks like pixel art, combining how regular its detected pixel grid is with how small its color palette is. Expressed as a percentage plus a plain-word verdict and a short explanation of which of the two signals is weak when they disagree.
