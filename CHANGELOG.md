@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-27
+
 ### Added
 
 - The downloaded JSON now includes a format version number, and describes each palette color as a single, self-contained value instead of two separate pieces. The palette's permanent, always-transparent entry is now explicitly marked as such. A published, machine-checkable schema lets other programs validate a downloaded file automatically, alongside a written explanation of the file's shape for anyone reading it by hand.
@@ -83,7 +85,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.1...v0.9.0
