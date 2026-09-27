@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-27
+
 ### Fixed
 
 - Fixed dark colors (near-black) not being recognized as a single color in the palette — an image's black outline could show up as many separate near-black colors instead of one.
@@ -59,7 +61,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Users can now select an image file to upload and see an instant preview of it. Choosing a non-image file, or an unsupported format like SVG, shows a clear error message instead of a broken preview.
 
-[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/neolao/pixel-art-serializer/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/neolao/pixel-art-serializer/compare/v0.5.0...v0.6.0
