@@ -1,0 +1,59 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://neolao.github.io/pixel-art-serializer/pixel-art-serialization.schema.json",
+	"title": "Pixel Art Serialization",
+	"description": "The JSON file downloaded from the Pixel Art Serializer app: a pixel-art image's logical grid size, its indexed color palette, and each logical pixel's palette index. See docs/json-format.md for a plain-language walkthrough.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["formatVersion", "gridWidth", "gridHeight", "palette", "pixels"],
+	"properties": {
+		"formatVersion": {
+			"type": "integer",
+			"const": 1,
+			"description": "The shape of this file. Bumped whenever a change would break a consumer relying on the previous shape; a consumer should check it before assuming the fields below."
+		},
+		"gridWidth": {
+			"type": "integer",
+			"minimum": 0,
+			"description": "The image's logical width, in pixel-art pixels (not raw image pixels)."
+		},
+		"gridHeight": {
+			"type": "integer",
+			"minimum": 0,
+			"description": "The image's logical height, in pixel-art pixels (not raw image pixels)."
+		},
+		"palette": {
+			"type": "array",
+			"description": "The distinct colors used by the image. A color's `index` is a stable identifier, not its position in this array: removing a color never renumbers or compacts the array.",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["index", "color", "reserved"],
+				"properties": {
+					"index": {
+						"type": "integer",
+						"minimum": 0,
+						"description": "This color's stable identifier, referenced by the `pixels` array. Not the same as this entry's position in the `palette` array."
+					},
+					"color": {
+						"type": "string",
+						"pattern": "^#[0-9a-f]{8}$",
+						"description": "The color as one 8-digit hex string: 2 hex digits each for red, green, blue, then alpha (`00` = fully transparent, `ff` = fully opaque)."
+					},
+					"reserved": {
+						"type": "boolean",
+						"description": "True only for the one entry (always index 0) permanently reserved for full transparency. It always exists, even in an image with no transparency of its own, and can never be removed, recolored, or displaced by another color."
+					}
+				}
+			}
+		},
+		"pixels": {
+			"type": "array",
+			"description": "One palette `index` per logical pixel, in row-major order (left to right, then top to bottom): `gridWidth * gridHeight` entries in total.",
+			"items": {
+				"type": "integer",
+				"minimum": 0
+			}
+		}
+	}
+}

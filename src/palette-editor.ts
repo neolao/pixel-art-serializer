@@ -1,3 +1,4 @@
+import { toHex8 } from "./color";
 import type {
 	PixelArtSerialization,
 	SerializedPaletteColor,
@@ -23,8 +24,8 @@ export function addPaletteColor(
 	const nextIndex = Math.max(...serialization.palette.map((c) => c.index)) + 1;
 	const newColor: SerializedPaletteColor = {
 		index: nextIndex,
-		hex: color.hex,
-		alpha: color.alpha,
+		color: toHex8(color.hex, color.alpha),
+		reserved: false,
 	};
 	return { ...serialization, palette: [...serialization.palette, newColor] };
 }
@@ -55,7 +56,7 @@ export function modifyPaletteColor(
 	return {
 		...serialization,
 		palette: serialization.palette.map((c) =>
-			c.index === index ? { ...c, hex: color.hex, alpha: color.alpha } : c,
+			c.index === index ? { ...c, color: toHex8(color.hex, color.alpha) } : c,
 		),
 	};
 }

@@ -1,5 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { labDistance, rgbToLab } from "./color";
+import { fromHex8, labDistance, rgbToLab, toHex8 } from "./color";
+
+describe("toHex8 / fromHex8", () => {
+	it("combines a 6-digit hex color and a decimal alpha into one 8-digit hex string", () => {
+		expect(toHex8("#ff0000", 255)).toBe("#ff0000ff");
+		expect(toHex8("#000000", 0)).toBe("#00000000");
+	});
+
+	it("zero-pads a low alpha value to two hex digits", () => {
+		expect(toHex8("#336699", 5)).toBe("#33669905");
+	});
+
+	it("splits an 8-digit hex string back into its 6-digit hex and decimal alpha", () => {
+		expect(fromHex8("#ff0000ff")).toEqual({ hex: "#ff0000", alpha: 255 });
+		expect(fromHex8("#33669905")).toEqual({ hex: "#336699", alpha: 5 });
+	});
+
+	it("round-trips through toHex8 then fromHex8 without losing precision", () => {
+		expect(fromHex8(toHex8("#123456", 142))).toEqual({
+			hex: "#123456",
+			alpha: 142,
+		});
+	});
+});
 
 describe("rgbToLab / labDistance", () => {
 	it("treats two near-black colors as perceptually close, like it already does for near-white and near-red colors", () => {

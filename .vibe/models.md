@@ -39,19 +39,20 @@ Defined in: `src/palette-extraction.ts`
 | Field | Type | Notes |
 |---|---|---|
 | index | number | stable identifier of this color, not necessarily its array position (a removal can leave a gap) |
-| hex | string | color as `#rrggbb` |
-| alpha | number | alpha channel, 0-255 |
-Index 0 is always the reserved fully-transparent color (`hex: "#000000"`, `alpha: 0`).
-Defined in: `src/serializer.ts`
+| color | string | color as one 8-digit hex string `#rrggbbaa` (RGB + alpha unified) |
+| reserved | boolean | `true` only for the permanent, always-transparent entry (index 0) |
+Index 0 is always the reserved fully-transparent color (`color: "#00000000"`, `reserved: true`).
+Defined in: `src/serializer.ts`. Exported/versioned shape documented in [`../docs/json-format.md`](../docs/json-format.md) and `../docs/pixel-art-serialization.schema.json`.
 
 ## PixelArtSerialization
 | Field | Type | Notes |
 |---|---|---|
+| formatVersion | number | the exported shape's version, currently `1` |
 | gridWidth | number | image width in logical pixels |
 | gridHeight | number | image height in logical pixels |
 | palette | SerializedPaletteColor[] | the indexed color palette |
 | pixels | number[] | row-major, one palette index per logical pixel, length `gridWidth * gridHeight` |
-Defined in: `src/serializer.ts`
+Defined in: `src/serializer.ts`. This is the exact shape of the file downloaded by the app.
 
 ## ConfidenceResult
 | Field | Type | Notes |

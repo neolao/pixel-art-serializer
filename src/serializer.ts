@@ -1,17 +1,29 @@
-import { type Lab, labDistance, rgbToHex, rgbToLab } from "./color";
+import { type Lab, labDistance, rgbToHex, rgbToLab, toHex8 } from "./color";
 import type { GridDetectionResult, PixelImageData } from "./grid-detection";
 import {
 	type PaletteExtractionResult,
 	sampleGridCellColor,
 } from "./palette-extraction";
 
+/**
+ * Bumped whenever the exported JSON's shape changes in a way an external
+ * consumer would need to detect — see
+ * .vibe/decisions/015-versioned-json-format-with-unified-color-and-reserved-flag.md.
+ */
+export const FORMAT_VERSION = 1;
+
+/** Index 0 is always the reserved, permanent, fully-transparent entry — see
+ * .vibe/decisions/011-palette-always-reserves-transparent-index-zero.md. */
+const RESERVED_TRANSPARENT_INDEX = 0;
+
 export interface SerializedPaletteColor {
 	index: number;
-	hex: string;
-	alpha: number;
+	color: string;
+	reserved: boolean;
 }
 
 export interface PixelArtSerialization {
+	formatVersion: number;
 	gridWidth: number;
 	gridHeight: number;
 	palette: SerializedPaletteColor[];
@@ -49,12 +61,13 @@ export function serializePixelArt(
 	}
 
 	return {
+		formatVersion: FORMAT_VERSION,
 		gridWidth: grid.gridWidth,
 		gridHeight: grid.gridHeight,
 		palette: palette.colors.map((color) => ({
 			index: color.index,
-			hex: rgbToHex(color.r, color.g, color.b),
-			alpha: color.a,
+			color: toHex8(rgbToHex(color.r, color.g, color.b), color.a),
+			reserved: color.index === RESERVED_TRANSPARENT_INDEX,
 		})),
 		pixels,
 	};

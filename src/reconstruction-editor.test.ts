@@ -8,12 +8,13 @@ import type { PixelArtSerialization } from "./serializer";
 
 function makeSerialization(): PixelArtSerialization {
 	return {
+		formatVersion: 1,
 		gridWidth: 2,
 		gridHeight: 2,
 		palette: [
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#ff0000", alpha: 255 },
-			{ index: 2, hex: "#00ff00", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#ff0000ff", reserved: false },
+			{ index: 2, color: "#00ff00ff", reserved: false },
 		],
 		pixels: [1, 2, 1, 2],
 	};

@@ -10,12 +10,13 @@ import type { PixelArtSerialization } from "./serializer";
 
 function makeSerialization(): PixelArtSerialization {
 	return {
+		formatVersion: 1,
 		gridWidth: 2,
 		gridHeight: 1,
 		palette: [
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#ff0000", alpha: 255 },
-			{ index: 2, hex: "#00ff00", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#ff0000ff", reserved: false },
+			{ index: 2, color: "#00ff00ff", reserved: false },
 		],
 		pixels: [1, 2],
 	};
@@ -23,13 +24,14 @@ function makeSerialization(): PixelArtSerialization {
 
 function makeThreeColorSerialization(): PixelArtSerialization {
 	return {
+		formatVersion: 1,
 		gridWidth: 3,
 		gridHeight: 1,
 		palette: [
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#ff0000", alpha: 255 },
-			{ index: 2, hex: "#00ff00", alpha: 255 },
-			{ index: 3, hex: "#0000ff", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#ff0000ff", reserved: false },
+			{ index: 2, color: "#00ff00ff", reserved: false },
+			{ index: 3, color: "#0000ffff", reserved: false },
 		],
 		pixels: [1, 2, 3],
 	};
@@ -43,7 +45,11 @@ describe("addPaletteColor", () => {
 		});
 
 		expect(result.palette).toHaveLength(4);
-		expect(result.palette[3]).toEqual({ index: 3, hex: "#0000ff", alpha: 255 });
+		expect(result.palette[3]).toEqual({
+			index: 3,
+			color: "#0000ffff",
+			reserved: false,
+		});
 		// Existing pixels are untouched by simply adding a color.
 		expect(result.pixels).toEqual([1, 2]);
 	});
@@ -73,7 +79,7 @@ describe("removePaletteColor", () => {
 	it("keeps surviving colors' indices stable, without compacting the palette array", () => {
 		const result = removePaletteColor(makeSerialization(), 1);
 
-		const survivor = result.palette.find((c) => c.hex === "#00ff00");
+		const survivor = result.palette.find((c) => c.color === "#00ff00ff");
 		expect(survivor?.index).toBe(2);
 	});
 
@@ -103,7 +109,11 @@ describe("modifyPaletteColor", () => {
 			alpha: 200,
 		});
 
-		expect(result.palette[1]).toEqual({ index: 1, hex: "#123456", alpha: 200 });
+		expect(result.palette[1]).toEqual({
+			index: 1,
+			color: "#123456c8",
+			reserved: false,
+		});
 		expect(result.pixels).toEqual([1, 2]);
 	});
 
@@ -132,8 +142,8 @@ describe("mergePaletteColors", () => {
 
 		expect(result.palette.find((c) => c.index === 2)).toEqual({
 			index: 2,
-			hex: "#00ff00",
-			alpha: 255,
+			color: "#00ff00ff",
+			reserved: false,
 		});
 	});
 

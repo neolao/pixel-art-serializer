@@ -1,3 +1,4 @@
+import { fromHex8 } from "./color";
 import {
 	addPaletteColor,
 	mergePaletteColors,
@@ -112,8 +113,8 @@ export function createReconstructionEditor(
 				},
 				onModify: (index, hex) => {
 					if (!serialization) return;
-					const existingAlpha =
-						serialization.palette.find((c) => c.index === index)?.alpha ?? 255;
+					const existing = serialization.palette.find((c) => c.index === index);
+					const existingAlpha = existing ? fromHex8(existing.color).alpha : 255;
 					serialization = modifyPaletteColor(serialization, index, {
 						hex,
 						alpha: existingAlpha,

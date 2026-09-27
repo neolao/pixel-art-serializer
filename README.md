@@ -14,6 +14,7 @@ A static website that takes an image and turns it into a JSON description of its
 - Manually correct the reconstruction: add, remove, or change a palette color, and repaint any pixel by picking a color from the palette. A dedicated fully-transparent color is always available, even on images with no detected transparency, so pixels can be erased. Every edit updates the reconstruction and the downloadable JSON immediately.
 - See transparent areas of the original and reconstructed image clearly, over a checkerboard backdrop.
 - Manually merge two or more palette colors into one you choose, for cases where the automatic grouping isn't quite what you want. Every affected pixel switches to the merged color, reflected everywhere: the palette, the reconstruction, and the downloadable JSON.
+- The downloaded JSON is self-describing: it carries a version number and a clear marker on its permanent transparent color, and comes with a written explanation of its shape plus a published schema so other programs can validate it automatically.
 <!-- vibe:end:features -->
 
 <!-- vibe:begin:install -->
@@ -55,5 +56,6 @@ npm run preview
 <!-- vibe:begin:docs-index -->
 - [docs/architecture.md](docs/architecture.md) — how the upload/preview flow is structured, module by module.
 - [docs/deployment.md](docs/deployment.md) — how the site is built and published to GitHub Pages.
+- [docs/json-format.md](docs/json-format.md) — the shape of the downloaded JSON file, field by field, plus a machine-checkable schema.
 - [docs/testing.md](docs/testing.md) — what the test suite covers, and what's verified manually instead.
 <!-- vibe:end:docs-index -->

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The downloaded JSON now includes a format version number, and describes each palette color as a single, self-contained value instead of two separate pieces. The palette's permanent, always-transparent entry is now explicitly marked as such. A published, machine-checkable schema lets other programs validate a downloaded file automatically, alongside a written explanation of the file's shape for anyone reading it by hand.
+
 ## [0.10.1] - 2026-09-27
 
 ### Fixed

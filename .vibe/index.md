@@ -29,6 +29,7 @@
 - A stateful DOM controller (`reconstruction-editor.ts`) is created once at startup and reset/reloaded per upload, rather than re-created per upload, so its event listeners on persistent elements (canvas, add-color button, merge-toggle button) never stack across successive images
 - A palette-editing operation offered on multiple selected colors at once (manual merge) uses a dedicated toggleable selection mode with checkboxes, rather than overloading the single-color click target already used for painting/recolor/remove, and preserves rather than clears unrelated state (the active paint color) when entering that mode (see `decisions/013-palette-merge-as-distinct-selection-mode.md`)
 - When the perceptual color merge combines two near-identical samples, their opacity is combined by taking the more opaque of the two rather than an average, so a single anti-aliased sample never drags an otherwise fully-opaque color into rendering semi-transparent (see `decisions/014-merged-alpha-takes-the-most-opaque-sample.md`)
+- The exported JSON is treated as a versioned, externally-consumed format (a `formatVersion` field, a single unified color encoding, an explicit `reserved` flag) rather than an internal implementation detail, with a published JSON Schema kept honest by a test that validates real output against it (see `decisions/015-versioned-json-format-with-unified-color-and-reserved-flag.md`, `decisions/016-json-schema-plus-ajv-conformance-test.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models

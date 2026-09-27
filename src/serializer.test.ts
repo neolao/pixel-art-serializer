@@ -1,7 +1,20 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import Ajv, { type ValidateFunction } from "ajv";
 import { describe, expect, it } from "vitest";
 import type { GridDetectionResult, PixelImageData } from "./grid-detection";
 import { extractColorPalette } from "./palette-extraction";
 import { serializePixelArt } from "./serializer";
+
+function loadSerializationSchemaValidator(): ValidateFunction {
+	const schemaPath = join(
+		process.cwd(),
+		"docs",
+		"pixel-art-serialization.schema.json",
+	);
+	const schema = JSON.parse(readFileSync(schemaPath, "utf-8"));
+	return new Ajv().compile(schema);
+}
 
 function makeImage(
 	width: number,
@@ -23,7 +36,7 @@ function makeImage(
 }
 
 describe("serializePixelArt", () => {
-	it("serializes the grid size, the color palette as hex codes, and each pixel's palette index", () => {
+	it("serializes the format version, the grid size, the color palette as unified colors, and each pixel's palette index", () => {
 		// 4x4 image, 2x2 logical grid: red / green top row, blue / yellow bottom row
 		const image = makeImage(4, 4, (x, y) => {
 			const left = x < 2;
@@ -43,27 +56,28 @@ describe("serializePixelArt", () => {
 
 		const result = serializePixelArt(image, grid, palette);
 
+		expect(result.formatVersion).toBe(1);
 		expect(result.gridWidth).toBe(2);
 		expect(result.gridHeight).toBe(2);
 		// 4 opaque colors + the always-reserved transparent entry at index 0
 		expect(result.palette).toHaveLength(5);
-		const hexes = result.palette.map((c) => c.hex);
-		expect(hexes).toContain("#ff0000");
-		expect(hexes).toContain("#00ff00");
-		expect(hexes).toContain("#0000ff");
-		expect(hexes).toContain("#ffff00");
+		const colors = result.palette.map((c) => c.color);
+		expect(colors).toContain("#ff0000ff");
+		expect(colors).toContain("#00ff00ff");
+		expect(colors).toContain("#0000ffff");
+		expect(colors).toContain("#ffff00ff");
 
 		expect(result.pixels).toHaveLength(4);
 		const colorAtPixelIndex = (pixelIndex: number) => {
 			const entry = result.palette.find(
 				(c) => c.index === result.pixels[pixelIndex],
 			);
-			return entry?.hex;
+			return entry?.color;
 		};
-		expect(colorAtPixelIndex(0)).toBe("#ff0000"); // top-left cell
-		expect(colorAtPixelIndex(1)).toBe("#00ff00"); // top-right cell
-		expect(colorAtPixelIndex(2)).toBe("#0000ff"); // bottom-left cell
-		expect(colorAtPixelIndex(3)).toBe("#ffff00"); // bottom-right cell
+		expect(colorAtPixelIndex(0)).toBe("#ff0000ff"); // top-left cell
+		expect(colorAtPixelIndex(1)).toBe("#00ff00ff"); // top-right cell
+		expect(colorAtPixelIndex(2)).toBe("#0000ffff"); // bottom-left cell
+		expect(colorAtPixelIndex(3)).toBe("#ffff00ff"); // bottom-right cell
 	});
 
 	it("assigns every pixel to the single opaque palette entry for a flat single-color image", () => {
@@ -79,10 +93,37 @@ describe("serializePixelArt", () => {
 		const result = serializePixelArt(image, grid, palette);
 
 		expect(result.palette).toEqual([
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#2ac811", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#2ac811ff", reserved: false },
 		]);
 		expect(result.pixels).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1]);
+	});
+
+	it("marks only the reserved transparent entry as reserved, regardless of how many opaque colors surround it", () => {
+		// 3x1 logical grid: two clearly separated opaque colors plus one
+		// fully-transparent sample, so the palette has one reserved entry and
+		// two ordinary ones.
+		const image = makeImage(3, 1, (x) => {
+			if (x === 0) return [0, 0, 0, 0];
+			if (x === 1) return [255, 0, 0, 255];
+			return [0, 0, 255, 255];
+		});
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 3,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+		const palette = extractColorPalette(image, grid);
+
+		const result = serializePixelArt(image, grid, palette);
+
+		const reservedEntries = result.palette.filter((c) => c.reserved);
+		expect(reservedEntries).toEqual([
+			{ index: 0, color: "#00000000", reserved: true },
+		]);
+		const ordinaryEntries = result.palette.filter((c) => !c.reserved);
+		expect(ordinaryEntries).toHaveLength(2);
 	});
 
 	it("reassigns every pixel to the merged palette entry when its original shade was folded away", () => {
@@ -126,8 +167,8 @@ describe("serializePixelArt", () => {
 		const result = serializePixelArt(image, grid, palette);
 
 		expect(result.palette).toEqual([
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#000000", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#000000ff", reserved: false },
 		]);
 		expect(result.pixels).toEqual([0, 1]);
 	});
@@ -148,5 +189,72 @@ describe("serializePixelArt", () => {
 		expect(() =>
 			serializePixelArt(image, grid, { colors: [], colorCount: 0 }),
 		).toThrow(/does not match the image dimensions/);
+	});
+});
+
+describe("serializePixelArt output vs. its published JSON Schema", () => {
+	it("validates real output — a multi-color image with a transparent pixel — against the schema", () => {
+		const image = makeImage(3, 1, (x) => {
+			if (x === 0) return [0, 0, 0, 0];
+			if (x === 1) return [255, 0, 0, 255];
+			return [0, 0, 255, 255];
+		});
+		const grid: GridDetectionResult = {
+			pixelSize: 1,
+			gridWidth: 3,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+		const palette = extractColorPalette(image, grid);
+		const result = serializePixelArt(image, grid, palette);
+		const validate = loadSerializationSchemaValidator();
+
+		const valid = validate(result);
+
+		expect(valid, JSON.stringify(validate.errors)).toBe(true);
+	});
+
+	it("validates real output — a flat, fully-opaque single-color image — against the schema", () => {
+		const image = makeImage(2, 2, () => [42, 200, 17, 255]);
+		const grid: GridDetectionResult = {
+			pixelSize: 2,
+			gridWidth: 1,
+			gridHeight: 1,
+			gridRegularity: 1,
+		};
+		const palette = extractColorPalette(image, grid);
+		const result = serializePixelArt(image, grid, palette);
+		const validate = loadSerializationSchemaValidator();
+
+		const valid = validate(result);
+
+		expect(valid, JSON.stringify(validate.errors)).toBe(true);
+	});
+
+	it("rejects a document written in the old, superseded shape (separate hex/alpha fields, no formatVersion)", () => {
+		const validate = loadSerializationSchemaValidator();
+
+		const valid = validate({
+			gridWidth: 1,
+			gridHeight: 1,
+			palette: [{ index: 0, hex: "#000000", alpha: 0 }],
+			pixels: [0],
+		});
+
+		expect(valid).toBe(false);
+	});
+
+	it("rejects a palette entry whose color is not an 8-digit hex string", () => {
+		const validate = loadSerializationSchemaValidator();
+
+		const valid = validate({
+			formatVersion: 1,
+			gridWidth: 1,
+			gridHeight: 1,
+			palette: [{ index: 0, color: "#000000", reserved: true }],
+			pixels: [0],
+		});
+
+		expect(valid).toBe(false);
 	});
 });

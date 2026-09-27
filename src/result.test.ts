@@ -52,9 +52,9 @@ function noopCallbacks(): PaletteCallbacks {
 describe("renderPalette", () => {
 	it("renders one visible swatch per palette color, in index order, with its hex code as text", () => {
 		const colors: SerializedPaletteColor[] = [
-			{ index: 0, hex: "#ff0000", alpha: 255 },
-			{ index: 1, hex: "#00ff00", alpha: 255 },
-			{ index: 2, hex: "#0000ff", alpha: 255 },
+			{ index: 0, color: "#ff0000ff", reserved: false },
+			{ index: 1, color: "#00ff00ff", reserved: false },
+			{ index: 2, color: "#0000ffff", reserved: false },
 		];
 		const container = document.createElement("div");
 
@@ -74,7 +74,7 @@ describe("renderPalette", () => {
 
 		renderPalette(
 			container,
-			[{ index: 0, hex: "#2ac811", alpha: 255 }],
+			[{ index: 0, color: "#2ac811ff", reserved: false }],
 			null,
 			noopCallbacks(),
 		);
@@ -88,8 +88,8 @@ describe("renderPalette", () => {
 		renderPalette(
 			container,
 			[
-				{ index: 0, hex: "#336699", alpha: 255 },
-				{ index: 1, hex: "#336699", alpha: 128 },
+				{ index: 0, color: "#336699ff", reserved: false },
+				{ index: 1, color: "#33669980", reserved: false },
 			],
 			null,
 			noopCallbacks(),
@@ -113,8 +113,8 @@ describe("renderPalette", () => {
 	it("marks the swatch matching the active index, and no other, as active", () => {
 		const container = document.createElement("div");
 		const colors: SerializedPaletteColor[] = [
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#ff0000", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#ff0000ff", reserved: false },
 		];
 
 		renderPalette(container, colors, 1, noopCallbacks());
@@ -130,8 +130,8 @@ describe("renderPalette", () => {
 		renderPalette(
 			container,
 			[
-				{ index: 0, hex: "#000000", alpha: 0 },
-				{ index: 1, hex: "#ff0000", alpha: 255 },
+				{ index: 0, color: "#00000000", reserved: true },
+				{ index: 1, color: "#ff0000ff", reserved: false },
 			],
 			null,
 			callbacks,
@@ -148,7 +148,7 @@ describe("renderPalette", () => {
 
 		renderPalette(
 			container,
-			[{ index: 0, hex: "#000000", alpha: 0 }],
+			[{ index: 0, color: "#00000000", reserved: true }],
 			null,
 			noopCallbacks(),
 		);
@@ -164,8 +164,8 @@ describe("renderPalette", () => {
 		renderPalette(
 			container,
 			[
-				{ index: 0, hex: "#000000", alpha: 0 },
-				{ index: 1, hex: "#ff0000", alpha: 255 },
+				{ index: 0, color: "#00000000", reserved: true },
+				{ index: 1, color: "#ff0000ff", reserved: false },
 			],
 			null,
 			callbacks,
@@ -186,8 +186,8 @@ describe("renderPalette", () => {
 		renderPalette(
 			container,
 			[
-				{ index: 0, hex: "#000000", alpha: 0 },
-				{ index: 1, hex: "#ff0000", alpha: 255 },
+				{ index: 0, color: "#00000000", reserved: true },
+				{ index: 1, color: "#ff0000ff", reserved: false },
 			],
 			null,
 			callbacks,
@@ -205,9 +205,9 @@ describe("renderPalette", () => {
 
 	describe("merge selection mode", () => {
 		const colors: SerializedPaletteColor[] = [
-			{ index: 0, hex: "#000000", alpha: 0 },
-			{ index: 1, hex: "#ff0000", alpha: 255 },
-			{ index: 2, hex: "#00ff00", alpha: 255 },
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#ff0000ff", reserved: false },
+			{ index: 2, color: "#00ff00ff", reserved: false },
 		];
 
 		it("renders a checkbox instead of modify/remove controls on non-transparent swatches", () => {
@@ -305,7 +305,7 @@ describe("resetResult", () => {
 		const elements = makeResultElements();
 		renderPalette(
 			elements.palette,
-			[{ index: 0, hex: "#ff0000", alpha: 255 }],
+			[{ index: 0, color: "#ff0000ff", reserved: false }],
 			null,
 			{ onSelect: vi.fn(), onRemove: vi.fn(), onModify: vi.fn() },
 		);
@@ -328,9 +328,10 @@ describe("resetResult", () => {
 	it("hides the download link and removes its previous data, so a stale download can't linger", () => {
 		const elements = makeResultElements();
 		const serialization: PixelArtSerialization = {
+			formatVersion: 1,
 			gridWidth: 1,
 			gridHeight: 1,
-			palette: [{ index: 0, hex: "#ff0000", alpha: 255 }],
+			palette: [{ index: 0, color: "#ff0000ff", reserved: false }],
 			pixels: [0],
 		};
 		renderDownloadLink(elements.downloadLink, serialization, "cat.png");
@@ -388,11 +389,12 @@ describe("renderConfidence", () => {
 
 describe("renderDownloadLink", () => {
 	const serialization: PixelArtSerialization = {
+		formatVersion: 1,
 		gridWidth: 2,
 		gridHeight: 1,
 		palette: [
-			{ index: 0, hex: "#ff0000", alpha: 255 },
-			{ index: 1, hex: "#00ff00", alpha: 128 },
+			{ index: 0, color: "#ff0000ff", reserved: false },
+			{ index: 1, color: "#00ff0080", reserved: false },
 		],
 		pixels: [0, 1],
 	};

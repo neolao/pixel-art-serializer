@@ -1,3 +1,4 @@
+import { fromHex8 } from "./color";
 import type { ConfidenceResult } from "./confidence";
 import {
 	detectPixelGridSize,
@@ -94,7 +95,7 @@ export function renderReconstruction(
 				serialization.pixels[y * serialization.gridWidth + x];
 			const color = colorsByIndex.get(paletteIndex);
 			if (!color) continue;
-			context.fillStyle = `${color.hex}${color.alpha.toString(16).padStart(2, "0")}`;
+			context.fillStyle = color.color;
 			context.fillRect(x, y, 1, 1);
 		}
 	}
@@ -164,12 +165,14 @@ function makeSwatch(
 
 	const fill = document.createElement("span");
 	fill.className = "swatch-fill";
-	fill.style.backgroundColor = `${color.hex}${color.alpha.toString(16).padStart(2, "0")}`;
+	fill.style.backgroundColor = color.color;
 	box.appendChild(fill);
+
+	const hex = fromHex8(color.color).hex;
 
 	const label = document.createElement("span");
 	label.className = "swatch-hex";
-	label.textContent = color.hex;
+	label.textContent = hex;
 
 	swatch.append(box, label);
 
@@ -184,7 +187,7 @@ function makeSwatch(
 		checkbox.type = "checkbox";
 		checkbox.className = "swatch-merge-select";
 		checkbox.checked = isSelected;
-		checkbox.setAttribute("aria-label", `Select color ${color.hex} to merge`);
+		checkbox.setAttribute("aria-label", `Select color ${hex} to merge`);
 		checkbox.addEventListener("change", () =>
 			callbacks.onToggleMerge?.(color.index),
 		);
@@ -194,10 +197,7 @@ function makeSwatch(
 			const mergeInto = document.createElement("button");
 			mergeInto.type = "button";
 			mergeInto.className = "swatch-merge-into";
-			mergeInto.setAttribute(
-				"aria-label",
-				`Merge selected colors into ${color.hex}`,
-			);
+			mergeInto.setAttribute("aria-label", `Merge selected colors into ${hex}`);
 			mergeInto.textContent = "Merge here";
 			mergeInto.addEventListener("click", () =>
 				callbacks.onMergeInto?.(color.index),
@@ -211,7 +211,7 @@ function makeSwatch(
 	const modify = document.createElement("input");
 	modify.type = "color";
 	modify.className = "swatch-modify";
-	modify.value = color.hex;
+	modify.value = hex;
 	modify.addEventListener("input", () =>
 		callbacks.onModify(color.index, modify.value),
 	);
@@ -219,7 +219,7 @@ function makeSwatch(
 	const remove = document.createElement("button");
 	remove.type = "button";
 	remove.className = "swatch-remove";
-	remove.setAttribute("aria-label", `Remove color ${color.hex}`);
+	remove.setAttribute("aria-label", `Remove color ${hex}`);
 	remove.textContent = "×";
 	remove.addEventListener("click", () => callbacks.onRemove(color.index));
 

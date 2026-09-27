@@ -44,3 +44,23 @@ export function rgbToHex(r: number, g: number, b: number): string {
 	const channel = (value: number) => value.toString(16).padStart(2, "0");
 	return `#${channel(r)}${channel(g)}${channel(b)}`;
 }
+
+/**
+ * Combines a 6-digit RGB hex color and a decimal alpha (0-255) into one
+ * 8-digit hex string (`#rrggbbaa`), the single encoding the exported JSON
+ * format uses for a color — see
+ * .vibe/decisions/015-versioned-json-format-with-unified-color-and-reserved-flag.md.
+ */
+export function toHex8(hex: string, alpha: number): string {
+	return `${hex}${alpha.toString(16).padStart(2, "0")}`;
+}
+
+/** The inverse of `toHex8`: splits an 8-digit hex color back into its
+ * 6-digit RGB hex and decimal alpha, for code that needs them separately
+ * (an `<input type="color">`, a canvas fill built from RGB alone). */
+export function fromHex8(hex8: string): { hex: string; alpha: number } {
+	return {
+		hex: hex8.slice(0, 7),
+		alpha: Number.parseInt(hex8.slice(7, 9), 16),
+	};
+}
