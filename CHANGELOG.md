@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - The reconstruction now shows its detected grid size (width × height, in logical pixels), so users can immediately see how the image was decomposed.
+- Pixel grid detection is now far more reliable on real-world pixel art with soft, anti-aliased edges (for example a photographed or re-compressed sprite): it used to report no grid at all on such images, and now finds one very close to the real size.
 
 ## [0.11.0] - 2026-09-27
 

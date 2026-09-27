@@ -1,7 +1,36 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { PNG } from "pngjs";
 import { describe, expect, it } from "vitest";
 import { detectPixelGridSize, type PixelImageData } from "./grid-detection";
 
-/** Builds a synthetic image made of a checkerboard of solid-color blocks. */
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Loads a real fixture image via pngjs, bypassing the DOM canvas dependency
+ * (see decisions/003-canvas-pixel-extraction-verified-at-runtime.md) so its
+ * already-decoded pixels can feed `detectPixelGridSize` directly in a
+ * regular Vitest/jsdom run.
+ */
+function loadFixture(name: string): PixelImageData {
+	const filePath = path.join(
+		dirname,
+		"..",
+		"fixtures",
+		"candidate-images",
+		name,
+	);
+	const png = PNG.sync.read(fs.readFileSync(filePath));
+	return { width: png.width, height: png.height, data: png.data };
+}
+
+/**
+ * Builds a synthetic image made of a checkerboard of solid-color blocks.
+ * Uses enough repeated cells (at least ~8 per axis) for the line-fitting
+ * detector to see a clear jump past the true cell size — a too-small image
+ * gives it no room to distinguish the true size from a smaller one.
+ */
 function makeBlockGridImage(
 	gridCols: number,
 	gridRows: number,
@@ -57,29 +86,59 @@ function makeNoisyImage(width: number, height: number): PixelImageData {
 	return { width, height, data };
 }
 
+/**
+ * Softens every cell boundary of a checkerboard image with a small box blur,
+ * simulating a real, re-compressed/anti-aliased pixel-art image whose
+ * logical-pixel edges are gradients rather than hard steps.
+ */
+function blur(image: PixelImageData, radius: number): PixelImageData {
+	const { width, height } = image;
+	const src = image.data as Uint8ClampedArray;
+	const out = new Uint8ClampedArray(src.length);
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			for (let c = 0; c < 4; c++) {
+				let sum = 0;
+				let count = 0;
+				for (let dy = -radius; dy <= radius; dy++) {
+					for (let dx = -radius; dx <= radius; dx++) {
+						const sx = x + dx;
+						const sy = y + dy;
+						if (sx < 0 || sx >= width || sy < 0 || sy >= height) continue;
+						sum += src[(sy * width + sx) * 4 + c];
+						count++;
+					}
+				}
+				out[(y * width + x) * 4 + c] = Math.round(sum / count);
+			}
+		}
+	}
+	return { width, height, data: out };
+}
+
 describe("detectPixelGridSize", () => {
 	it("detects the block size and grid dimensions of an upscaled uniform grid", () => {
-		const image = makeBlockGridImage(4, 3, 10, 10);
+		const image = makeBlockGridImage(8, 8, 10, 10);
 
 		const result = detectPixelGridSize(image);
 
 		expect(result).toEqual({
 			pixelSize: 10,
-			gridWidth: 4,
-			gridHeight: 3,
+			gridWidth: 8,
+			gridHeight: 8,
 			gridRegularity: 1,
 		});
 	});
 
 	it("detects independent horizontal and vertical cell sizes for a non-square grid", () => {
-		const image = makeBlockGridImage(3, 2, 8, 5);
+		const image = makeBlockGridImage(8, 8, 8, 5);
 
 		const result = detectPixelGridSize(image);
 
 		expect(result).toEqual({
 			pixelSize: 5,
-			gridWidth: 3,
-			gridHeight: 2,
+			gridWidth: 8,
+			gridHeight: 8,
 			gridRegularity: 1,
 		});
 	});
@@ -111,19 +170,83 @@ describe("detectPixelGridSize", () => {
 	});
 
 	it("reports a lower grid regularity when some scanned lines break the otherwise-consistent block size", () => {
-		const image = makeBlockGridImage(4, 3, 10, 10);
-		// Flip a single pixel deep inside a block, on a line the scanner samples
-		// (row y=5, column x=15), splitting that one run in two without changing
-		// which block size is most common overall.
+		const image = makeBlockGridImage(8, 8, 10, 10);
+		// Flip a single pixel deep inside a block, splitting that one run in
+		// two without changing which block size is most common overall.
 		flipPixel(image, 15, 5);
 
 		const result = detectPixelGridSize(image);
 
 		expect(result.pixelSize).toBe(10);
-		expect(result.gridWidth).toBe(4);
-		expect(result.gridHeight).toBe(3);
+		expect(result.gridWidth).toBe(8);
+		expect(result.gridHeight).toBe(8);
 		expect(result.gridRegularity).toBeGreaterThan(0.8);
 		expect(result.gridRegularity).toBeLessThan(1);
+	});
+
+	it("still detects the true cell size when every cell boundary is blurred rather than a hard edge", () => {
+		const sharp = makeBlockGridImage(8, 8, 32, 32);
+		const image = blur(sharp, 2);
+
+		const result = detectPixelGridSize(image);
+
+		expect(result.pixelSize).toBe(32);
+		expect(result.gridWidth).toBe(8);
+		expect(result.gridHeight).toBe(8);
+		expect(result.gridRegularity).toBeGreaterThanOrEqual(0);
+		expect(result.gridRegularity).toBeLessThanOrEqual(1);
+	});
+
+	describe("against real images with a Product-Owner-confirmed grid size", () => {
+		it("detects the confirmed grid on a native-resolution icon", () => {
+			const image = loadFixture("pixel-art-icon-92db5f3c-native.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(result.gridWidth).toBe(15);
+			expect(result.gridHeight).toBe(15);
+		});
+
+		it("detects the confirmed grid on a second native-resolution icon", () => {
+			const image = loadFixture("pixel-art-icon-eb214736-native.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(result.gridWidth).toBe(15);
+			expect(result.gridHeight).toBe(15);
+		});
+
+		it("detects the confirmed grid on a third native-resolution icon", () => {
+			const image = loadFixture("pixel-art-icon-f3d07bfd-native.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(result.gridWidth).toBe(16);
+			expect(result.gridHeight).toBe(16);
+		});
+
+		it("detects the confirmed grid on a clean upscaled sprite", () => {
+			const image = loadFixture("pixel-art-cat-sitting.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(result.gridWidth).toBe(15);
+			expect(result.gridHeight).toBe(14);
+		});
+
+		it("detects a grid within one cell of the confirmed 16x16 on the reported blurred-edge bug's image", () => {
+			// The image behind the bug this feature fixes: a real pixel-art
+			// sprite whose logical-pixel edges are soft/anti-aliased. The
+			// previous algorithm found no grid at all on it (pixelSize 1); a
+			// small remaining imprecision here is an accepted, documented
+			// trade-off (decision 019), not a regression to watch for.
+			const image = loadFixture("pixel-art-mario-sprite-blurred-border.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(Math.abs(result.gridWidth - 16)).toBeLessThanOrEqual(1);
+			expect(Math.abs(result.gridHeight - 16)).toBeLessThanOrEqual(1);
+		});
 	});
 
 	it("throws when the pixel data does not match the declared dimensions", () => {
