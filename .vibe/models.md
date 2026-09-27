@@ -32,3 +32,20 @@ Defined in: `src/palette-extraction.ts`
 | colors | PaletteColor[] | the indexed distinct colors found |
 | colorCount | number | total number of distinct colors, i.e. `colors.length` |
 Defined in: `src/palette-extraction.ts`
+
+## SerializedPaletteColor
+| Field | Type | Notes |
+|---|---|---|
+| index | number | position of this color in the palette |
+| hex | string | color as `#rrggbb` |
+| alpha | number | alpha channel, 0-255 |
+Defined in: `src/serializer.ts`
+
+## PixelArtSerialization
+| Field | Type | Notes |
+|---|---|---|
+| gridWidth | number | image width in logical pixels |
+| gridHeight | number | image height in logical pixels |
+| palette | SerializedPaletteColor[] | the indexed color palette |
+| pixels | number[] | row-major, one palette index per logical pixel, length `gridWidth * gridHeight` |
+Defined in: `src/serializer.ts`

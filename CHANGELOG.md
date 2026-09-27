@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Implemented serialization of a decomposed image into one JSON description: its logical grid size, its color palette as hex codes, and, for every logical pixel, the index of the palette color it uses. Not yet connected to the upload screen.
+
 ## [0.3.0] - 2026-09-24
 
 ### Added

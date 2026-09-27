@@ -39,3 +39,8 @@ export function labDistance(a: Lab, b: Lab): number {
 	const db = a[2] - b[2];
 	return Math.sqrt(dl * dl + da * da + db * db);
 }
+
+export function rgbToHex(r: number, g: number, b: number): string {
+	const channel = (value: number) => value.toString(16).padStart(2, "0");
+	return `#${channel(r)}${channel(g)}${channel(b)}`;
+}

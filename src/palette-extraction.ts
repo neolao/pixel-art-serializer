@@ -52,15 +52,11 @@ function sampleGridCells(
 	image: PixelImageData,
 	grid: GridDetectionResult,
 ): ColorCount[] {
-	const cellWidth = image.width / grid.gridWidth;
-	const cellHeight = image.height / grid.gridHeight;
 	const counts = new Map<string, ColorCount>();
 
 	for (let cy = 0; cy < grid.gridHeight; cy++) {
-		const y = clamp(Math.floor((cy + 0.5) * cellHeight), 0, image.height - 1);
 		for (let cx = 0; cx < grid.gridWidth; cx++) {
-			const x = clamp(Math.floor((cx + 0.5) * cellWidth), 0, image.width - 1);
-			const [r, g, b, a] = pixelAt(image, x, y);
+			const [r, g, b, a] = sampleGridCellColor(image, grid, cx, cy);
 			const key = `${r},${g},${b},${a}`;
 			const existing = counts.get(key);
 			if (existing) {
@@ -72,6 +68,26 @@ function sampleGridCells(
 	}
 
 	return [...counts.values()];
+}
+
+/**
+ * The representative color of one logical grid cell, sampled at the raw
+ * pixel nearest the cell's center (see `extractColorPalette`'s doc comment
+ * for why center-sampling rather than averaging). Exported so other steps
+ * of the pipeline (e.g. per-pixel palette indexing) sample cells the exact
+ * same way the palette itself was built from.
+ */
+export function sampleGridCellColor(
+	image: PixelImageData,
+	grid: GridDetectionResult,
+	cx: number,
+	cy: number,
+): [number, number, number, number] {
+	const cellWidth = image.width / grid.gridWidth;
+	const cellHeight = image.height / grid.gridHeight;
+	const y = clamp(Math.floor((cy + 0.5) * cellHeight), 0, image.height - 1);
+	const x = clamp(Math.floor((cx + 0.5) * cellWidth), 0, image.width - 1);
+	return pixelAt(image, x, y);
 }
 
 /**

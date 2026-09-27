@@ -2,7 +2,7 @@
 
 **Role:** Extracts and indexes an image's color palette from its detected logical pixel grid, folding perceptually near-identical colors (compression-artifact noise) into a single palette entry.
 **Files:** `src/palette-extraction.ts`, `src/color.ts`
-**Exports:** `extractColorPalette(image: PixelImageData, grid: GridDetectionResult): PaletteExtractionResult`, types `PaletteColor`, `PaletteExtractionResult`; `rgbToLab(rgb): Lab`, `labDistance(a: Lab, b: Lab): number`, type `Lab`
+**Exports:** `extractColorPalette(image: PixelImageData, grid: GridDetectionResult): PaletteExtractionResult`, `sampleGridCellColor(image, grid, cx, cy): [r,g,b,a]`, types `PaletteColor`, `PaletteExtractionResult`; `rgbToLab(rgb): Lab`, `labDistance(a: Lab, b: Lab): number`, `rgbToHex(r, g, b): string`, type `Lab`
 **Depends on:** `modules/grid-detection.md`
 
-Not yet wired into `app`/`upload` — this ticket built the extraction engine only; connecting it to the upload flow and displaying its result is later work.
+Not yet wired into `app`/`upload` — this ticket built the extraction engine only; connecting it to the upload flow and displaying its result is later work. `sampleGridCellColor` is exported so `modules/serializer.md` samples grid cells the exact same way the palette itself was built from.
