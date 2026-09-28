@@ -22,6 +22,8 @@ const SPACING_PENALTY = 0.5;
 const MIN_CELL_SIZE = 2;
 const PLATEAU_MAX = 0.2;
 const PLATEAU_MIN_RUN = 2;
+const FLAT_RUN_TOLERANCE = 1e-9;
+const FLAT_RUN_MIN_LEN = 5;
 const REFIT_ROUNDS = 4;
 const ALTERNATE_ROUNDS = 4;
 
@@ -155,6 +157,13 @@ function sweepAxis(
  * tried first but locked onto a transient dip that later recovered, rather
  * than the true, sustained plateau right before variance rises for good
  * (see decision 019 and the item-015 implementation notes).
+ *
+ * Falls back to the first sufficiently long run of near-identical values in
+ * the curve when nothing qualifies against the absolute threshold: on busy,
+ * high-contrast source art (e.g. a hand-drawn grid chart with shading
+ * inside every cell), the true cell size can settle onto the same fitted
+ * lines across a whole range of candidates — a genuine plateau — while
+ * sitting well above PLATEAU_MAX the whole time (see decision 021).
  */
 function findPlateauEnd(
 	u: readonly number[],
@@ -172,7 +181,39 @@ function findPlateauEnd(
 			runStart = null;
 		}
 	}
-	return best;
+	return best ?? findFlatRunEnd(u, minCandidate, maxCandidate);
+}
+
+/**
+ * The end of the *first* run of consecutive near-equal values that reaches
+ * FLAT_RUN_MIN_LEN, or null if none does. Larger candidates give the DP
+ * fewer real degrees of freedom, so coincidental ties get longer and longer
+ * simply by drifting up the curve — picking the widest run anywhere latches
+ * onto those coarse, meaningless plateaus instead of the true grid, which
+ * shows up as the first one encountered right after the curve's initial,
+ * choppy rise (see decision 021).
+ */
+function findFlatRunEnd(
+	u: readonly number[],
+	minCandidate: number,
+	maxCandidate: number,
+): number | null {
+	let runStart = minCandidate;
+	for (let c = minCandidate + 1; c <= maxCandidate; c++) {
+		// A tie at the degenerate "no partition at all" value (grid variance
+		// equal to the whole image's, i.e. a single box) is not a real
+		// plateau — it's the trivial upper bound every failed fit ties at.
+		const degenerate = u[c] >= 1 - FLAT_RUN_TOLERANCE;
+		const flat =
+			!degenerate &&
+			Math.abs(u[c] - u[c - 1]) <= FLAT_RUN_TOLERANCE * Math.max(1, u[c - 1]);
+		if (!flat) {
+			runStart = c;
+		} else if (c - runStart + 1 >= FLAT_RUN_MIN_LEN) {
+			return c;
+		}
+	}
+	return null;
 }
 
 /** Refits at the spacing between edge-backed lines until it stops moving (usually 1-2 rounds). */

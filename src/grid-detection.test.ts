@@ -247,6 +247,15 @@ describe("detectPixelGridSize", () => {
 			expect(Math.abs(result.gridWidth - 16)).toBeLessThanOrEqual(1);
 			expect(Math.abs(result.gridHeight - 16)).toBeLessThanOrEqual(1);
 		});
+
+		it("detects the confirmed 27x29 grid on a fine hand-drawn grid-chart image", () => {
+			const image = loadFixture("pixel-art-totoro-grid-drawing.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(result.gridWidth).toBe(27);
+			expect(result.gridHeight).toBe(29);
+		});
 	});
 
 	it("throws when the pixel data does not match the declared dimensions", () => {

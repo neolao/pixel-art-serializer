@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed pixel grid detection reporting no grid at all on a hand-drawn grid-chart style image (gridlines over shaded, non-flat cell interiors), where the true cell size was previously ruled out for sitting on a stable-but-noisy plateau rather than a clean low-variance one.
+
 ## [0.12.1] - 2026-09-28
 
 ### Fixed
