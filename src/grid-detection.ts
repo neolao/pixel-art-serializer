@@ -26,6 +26,18 @@ const FLAT_RUN_TOLERANCE = 1e-9;
 const FLAT_RUN_MIN_LEN = 5;
 const REFIT_ROUNDS = 4;
 const ALTERNATE_ROUNDS = 4;
+/**
+ * A run's length must reach this share of its own end candidate's value
+ * before `findFloorRunEnd` trusts it as a genuine plateau. Derived from
+ * `LINE_TOLERANCE` (±25%): candidates within that drift band of a true cell
+ * size converge to the same fitted lines, so a real plateau's width scales
+ * with its own candidate value (roughly `2 * LINE_TOLERANCE` wide in the
+ * best case) — a run tied at a lower value purely by coincidence (observed:
+ * a 5-long run at candidate 24, ratio ~0.21, edging out the genuine 19-long
+ * run at candidate 50, ratio ~0.38, by having the lower number alone) never
+ * reaches this share of its own scale.
+ */
+const FLOOR_RUN_MIN_WIDTH_RATIO = 0.3;
 
 interface ColorIntegrals {
 	r: Float64Array;
@@ -158,18 +170,39 @@ function sweepAxis(
  * than the true, sustained plateau right before variance rises for good
  * (see decision 019 and the item-015 implementation notes).
  *
- * Falls back to the first sufficiently long run of near-identical values in
- * the curve when nothing qualifies against the absolute threshold: on busy,
- * high-contrast source art (e.g. a hand-drawn grid chart with shading
- * inside every cell), the true cell size can settle onto the same fitted
- * lines across a whole range of candidates — a genuine plateau — while
- * sitting well above PLATEAU_MAX the whole time (see decision 021).
+ * Tried first against `findFloorRunEnd`, which looks for a run of candidates
+ * tied at a bit-identical value (the DP converging on the exact same fitted
+ * lines): on a real photo-like image whose content has flat-ish color
+ * patches at more than one scale, several disjoint stretches of the curve
+ * can each independently sit under the fixed PLATEAU_MAX cap — the
+ * absolute-threshold scan below walks the *entire* candidate range and keeps
+ * the *last* qualifying point it ever sees, so it can walk straight past the
+ * true, tight plateau (a near-perfect fit, far below the cap) into a later,
+ * coarser, merely-good-enough one. A bit-identical tie is specific enough
+ * that it never spuriously fires on the over-partitioned tiny-candidate
+ * region (those values drift, they don't repeat exactly) or on legitimate
+ * single-plateau images (where this and the threshold scan agree), so it
+ * only changes the outcome for the multi-plateau case it targets (see
+ * decision 024).
+ *
+ * Falls back to the same absolute-threshold scan as before when nothing
+ * clears `findFloorRunEnd`'s bar (no tied run wide and low enough to trust —
+ * e.g. a real photo where nothing repeats exactly), then to a near-identical
+ * -run search widened to the whole range (`findFlatRunEnd`) when nothing
+ * qualifies against the absolute threshold either: on busy, high-contrast
+ * source art (e.g. a hand-drawn grid chart with shading inside every cell),
+ * the true cell size can settle onto the same fitted lines across a whole
+ * range of candidates — a genuine plateau — while sitting well above
+ * PLATEAU_MAX the whole time (see decision 021).
  */
 function findPlateauEnd(
 	u: readonly number[],
 	minCandidate: number,
 	maxCandidate: number,
 ): number | null {
+	const floorRunEnd = findFloorRunEnd(u, minCandidate, maxCandidate);
+	if (floorRunEnd !== null) return floorRunEnd;
+
 	let runStart: number | null = null;
 	let best: number | null = null;
 	for (let c = minCandidate; c < maxCandidate; c++) {
@@ -182,6 +215,65 @@ function findPlateauEnd(
 		}
 	}
 	return best ?? findFlatRunEnd(u, minCandidate, maxCandidate);
+}
+
+/**
+ * Among every run of consecutive candidates tied at a bit-identical value
+ * (the line-fitting DP converging on the same fitted lines — see
+ * `findFlatRunEnd`), the *widest* one that both clears
+ * `FLOOR_RUN_MIN_WIDTH_RATIO` and sits at or below `PLATEAU_MAX` is trusted
+ * as the genuine plateau — not simply the lowest tied value, and not simply
+ * the widest run outright:
+ *
+ * - Two different qualifying-width runs can each be a genuine, wide,
+ *   tolerance-driven plateau (real structure exists at more than one scale,
+ *   e.g. a sprite's overall grid and a smaller internal repeating detail),
+ *   and the smaller-scale one's residual variance is often incidentally
+ *   lower simply because finer partitions fit color data more tightly in
+ *   general — that's not evidence it's the *logical pixel* grid, so width
+ *   (not value) breaks the tie between them, matching what the rest of this
+ *   scoring already treats as the trust signal (decision 019/021).
+ * - Conversely, very large candidate sizes can also tie over a wide range
+ *   purely because the DP has few real degrees of freedom left at that
+ *   scale (observed: a 52-long tie at candidate ~155 on a real photo-like
+ *   image, residual variance 0.57 — worse than three-quarters of the whole
+ *   image's own color spread) — `PLATEAU_MAX` filters out these degenerate,
+ *   poor-fit wide ties the same way it already filters the absolute-
+ *   threshold scan below.
+ */
+function findFloorRunEnd(
+	u: readonly number[],
+	minCandidate: number,
+	maxCandidate: number,
+): number | null {
+	let bestLength = 0;
+	let bestValue = Number.POSITIVE_INFINITY;
+	let bestEnd: number | null = null;
+
+	// Examines the same [minCandidate, maxCandidate) range as the other
+	// scans below — u[maxCandidate] itself is never filled by the caller.
+	let runStart = minCandidate;
+	for (let c = minCandidate + 1; c <= maxCandidate; c++) {
+		const continuesRun = c < maxCandidate && u[c] === u[c - 1];
+		if (!continuesRun) {
+			const runEnd = c - 1;
+			const runLength = runEnd - runStart + 1;
+			const qualifies =
+				u[runStart] <= PLATEAU_MAX &&
+				runLength >= FLAT_RUN_MIN_LEN &&
+				runLength >= runEnd * FLOOR_RUN_MIN_WIDTH_RATIO;
+			const better =
+				runLength > bestLength ||
+				(runLength === bestLength && u[runStart] < bestValue);
+			if (qualifies && better) {
+				bestLength = runLength;
+				bestValue = u[runStart];
+				bestEnd = runEnd;
+			}
+			runStart = c;
+		}
+	}
+	return bestEnd;
 }
 
 /**

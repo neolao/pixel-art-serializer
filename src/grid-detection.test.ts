@@ -256,6 +256,15 @@ describe("detectPixelGridSize", () => {
 			expect(result.gridWidth).toBe(27);
 			expect(result.gridHeight).toBe(29);
 		});
+
+		it("detects the confirmed 15x15 grid on a native-resolution owl sprite", () => {
+			const image = loadFixture("pixel-art-little-brown-owl.png");
+
+			const result = detectPixelGridSize(image);
+
+			expect(result.gridWidth).toBe(15);
+			expect(result.gridHeight).toBe(15);
+		});
 	});
 
 	it("throws when the pixel data does not match the declared dimensions", () => {

@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Fixed pixel grid detection reporting no grid at all on a hand-drawn grid-chart style image (gridlines over shaded, non-flat cell interiors), where the true cell size was previously ruled out for sitting on a stable-but-noisy plateau rather than a clean low-variance one.
+- Fixed pixel grid detection reporting a much coarser grid than the real one on some real sprites (e.g. a 4×4 grid instead of the real 15×15 on a photographed owl sprite with a transparent margin), where a far better, more precise detection existed but was skipped in favor of a worse, coarser one found later.
 
 ## [0.12.1] - 2026-09-28
 
