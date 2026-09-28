@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Users can now also download the result as a `.gif` image, next to the existing JSON download. If the palette has more colors than GIF supports (256), the GIF option stays visible but explains it can't be used for that image, while the JSON download keeps working normally. If a color can't be shown at its exact transparency in a GIF, a note says so, without affecting the JSON download.
+- The JSON and GIF downloads now look like buttons instead of plain text links.
 
 ### Fixed
 

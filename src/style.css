@@ -137,10 +137,35 @@ h1 {
 	margin-top: 8px;
 }
 
-#download-json {
-	display: inline-block;
+.downloads {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
 	margin-top: 16px;
+}
+
+.downloads a {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border: 1px solid var(--swatch-border);
+	border-radius: var(--radius);
+	background: color-mix(in srgb, var(--text) 8%, var(--bg));
+	text-decoration: none;
 	color: var(--text-h);
+	cursor: pointer;
+}
+
+.downloads a[aria-disabled="true"] {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+#gif-note {
+	max-width: 480px;
+	margin: 8px auto 0;
+	font-size: 14px;
 }
 
 #confidence {
