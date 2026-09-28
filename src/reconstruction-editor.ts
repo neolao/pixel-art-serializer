@@ -8,6 +8,7 @@ import {
 } from "./palette-editor";
 import {
 	renderDownloadLink,
+	renderGifDownloadLink,
 	renderPalette,
 	renderReconstruction,
 } from "./result";
@@ -17,6 +18,8 @@ export interface EditorElements {
 	reconstructionCanvas: HTMLCanvasElement;
 	palette: HTMLElement;
 	downloadLink: HTMLAnchorElement;
+	gifDownloadLink: HTMLAnchorElement;
+	gifNote: HTMLElement;
 	addColorInput: HTMLInputElement;
 	addColorButton: HTMLButtonElement;
 	mergeToggleButton: HTMLButtonElement;
@@ -153,6 +156,12 @@ export function createReconstructionEditor(
 			mergeMode ? mergeSelection : undefined,
 		);
 		renderDownloadLink(elements.downloadLink, serialization, sourceFileName);
+		renderGifDownloadLink(
+			elements.gifDownloadLink,
+			elements.gifNote,
+			serialization,
+			sourceFileName,
+		);
 	}
 
 	attachPixelPainter(

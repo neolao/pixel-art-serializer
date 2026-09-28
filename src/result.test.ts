@@ -1,13 +1,17 @@
+import { GifReader } from "omggif";
 import { describe, expect, it, vi } from "vitest";
 import type { ConfidenceResult } from "./confidence";
+import { MAX_GIF_COLORS } from "./gif-encoder";
 import {
 	type PaletteCallbacks,
 	type ResultElements,
 	renderConfidence,
 	renderDownloadLink,
+	renderGifDownloadLink,
 	renderGridSize,
 	renderPalette,
 	resetResult,
+	toGifFilename,
 	toJsonFilename,
 } from "./result";
 import type {
@@ -20,6 +24,8 @@ function makeResultElements(): ResultElements {
 	const reconstructionCanvas = document.createElement("canvas");
 	const palette = document.createElement("div");
 	const downloadLink = document.createElement("a");
+	const gifDownloadLink = document.createElement("a");
+	const gifNote = document.createElement("p");
 	const confidence = document.createElement("p");
 	const gridSize = document.createElement("p");
 	reconstructionFigure.appendChild(reconstructionCanvas);
@@ -28,9 +34,49 @@ function makeResultElements(): ResultElements {
 		reconstructionCanvas,
 		palette,
 		downloadLink,
+		gifDownloadLink,
+		gifNote,
 		confidence,
 		gridSize,
 	};
+}
+
+function readDownloadedGif(link: HTMLAnchorElement): {
+	width: number;
+	height: number;
+	pixels: Uint8ClampedArray;
+} {
+	const href = link.getAttribute("href") ?? "";
+	const prefix = "data:image/gif;base64,";
+	if (!href.startsWith(prefix)) {
+		throw new Error(`unexpected href: ${href}`);
+	}
+	const binary = atob(href.slice(prefix.length));
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+	const reader = new GifReader(bytes);
+	const pixels = new Uint8ClampedArray(reader.width * reader.height * 4);
+	reader.decodeAndBlitFrameRGBA(0, pixels);
+	return { width: reader.width, height: reader.height, pixels };
+}
+
+function makeSerializationWithColorCount(
+	colorCount: number,
+): PixelArtSerialization {
+	const palette: SerializedPaletteColor[] = [
+		{ index: 0, color: "#00000000", reserved: true },
+	];
+	for (let i = 1; i < colorCount; i++) {
+		const channel = (i % 256).toString(16).padStart(2, "0");
+		palette.push({ index: i, color: `#${channel}0000ff`, reserved: false });
+	}
+	const gridWidth = 16;
+	const gridHeight = Math.ceil(colorCount / gridWidth);
+	const pixels: number[] = [];
+	for (let i = 0; i < gridWidth * gridHeight; i++) {
+		pixels.push(i < colorCount ? i : 0);
+	}
+	return { formatVersion: 1, gridWidth, gridHeight, palette, pixels };
 }
 
 function makeSerialization(
@@ -358,6 +404,33 @@ describe("resetResult", () => {
 		expect(elements.downloadLink.getAttribute("href")).toBeNull();
 	});
 
+	it("hides the GIF download link and its note, and removes previous data", () => {
+		const elements = makeResultElements();
+		const serialization: PixelArtSerialization = {
+			formatVersion: 1,
+			gridWidth: 1,
+			gridHeight: 1,
+			palette: [
+				{ index: 0, color: "#00000000", reserved: true },
+				{ index: 1, color: "#00ff0080", reserved: false },
+			],
+			pixels: [1],
+		};
+		renderGifDownloadLink(
+			elements.gifDownloadLink,
+			elements.gifNote,
+			serialization,
+			"cat.png",
+		);
+
+		resetResult(elements);
+
+		expect(elements.gifDownloadLink.hidden).toBe(true);
+		expect(elements.gifDownloadLink.getAttribute("href")).toBeNull();
+		expect(elements.gifNote.hidden).toBe(true);
+		expect(elements.gifNote.textContent).toBe("");
+	});
+
 	it("hides the confidence verdict and clears its previous text", () => {
 		const elements = makeResultElements();
 		renderConfidence(elements.confidence, {
@@ -475,6 +548,119 @@ describe("renderDownloadLink", () => {
 		renderDownloadLink(link, serialization, undefined);
 
 		expect(link.download).toBe("pixel-art.json");
+	});
+});
+
+describe("renderGifDownloadLink", () => {
+	const serialization: PixelArtSerialization = {
+		formatVersion: 1,
+		gridWidth: 2,
+		gridHeight: 1,
+		palette: [
+			{ index: 0, color: "#00000000", reserved: true },
+			{ index: 1, color: "#00ff0080", reserved: false },
+		],
+		pixels: [1, 0],
+	};
+
+	it("makes the link downloadable with a GIF matching the current reconstruction", () => {
+		const link = document.createElement("a");
+		const note = document.createElement("p");
+
+		renderGifDownloadLink(link, note, serialization, "cat.png");
+
+		expect(link.hidden).toBe(false);
+		const decoded = readDownloadedGif(link);
+		expect(decoded.width).toBe(2);
+		expect(decoded.height).toBe(1);
+		expect([...decoded.pixels]).toEqual([
+			0,
+			255,
+			0,
+			255, // pixel 0: the semi-transparent green, flattened to opaque
+			0,
+			0,
+			0,
+			0, // pixel 1: the reserved transparent color
+		]);
+	});
+
+	it("names the downloaded file after the source image, with a .gif extension", () => {
+		const link = document.createElement("a");
+		const note = document.createElement("p");
+
+		renderGifDownloadLink(link, note, serialization, "cat.png");
+
+		expect(link.download).toBe("cat.gif");
+	});
+
+	it("falls back to a sensible default name when no source file name is available", () => {
+		const link = document.createElement("a");
+		const note = document.createElement("p");
+
+		renderGifDownloadLink(link, note, serialization, undefined);
+
+		expect(link.download).toBe("pixel-art.gif");
+	});
+
+	it("shows a standing, non-blocking note when a color had to be flattened to opaque for the GIF only", () => {
+		const link = document.createElement("a");
+		const note = document.createElement("p");
+
+		renderGifDownloadLink(link, note, serialization, "cat.png");
+
+		expect(note.hidden).toBe(false);
+		expect(note.textContent).not.toBe("");
+		expect(link.getAttribute("href")).not.toBeNull();
+	});
+
+	it("keeps the note hidden when every color is fully opaque", () => {
+		const link = document.createElement("a");
+		const note = document.createElement("p");
+		const opaqueSerialization: PixelArtSerialization = {
+			...serialization,
+			palette: [
+				{ index: 0, color: "#00000000", reserved: true },
+				{ index: 1, color: "#00ff00ff", reserved: false },
+			],
+		};
+
+		renderGifDownloadLink(link, note, opaqueSerialization, "cat.png");
+
+		expect(note.hidden).toBe(true);
+		expect(note.textContent).toBe("");
+	});
+
+	it("keeps the link visible but disabled, with an explanation, when the palette exceeds GIF's color limit", () => {
+		const link = document.createElement("a");
+		const note = document.createElement("p");
+		const tooManyColors = makeSerializationWithColorCount(MAX_GIF_COLORS + 1);
+
+		renderGifDownloadLink(link, note, tooManyColors, "cat.png");
+
+		expect(link.hidden).toBe(false);
+		expect(link.getAttribute("href")).toBeNull();
+		expect(link.getAttribute("aria-disabled")).toBe("true");
+		expect(note.hidden).toBe(false);
+		expect(note.textContent).toContain("256");
+	});
+});
+
+describe("toGifFilename", () => {
+	it("replaces the source file's extension with .gif", () => {
+		expect(toGifFilename("cat.png")).toBe("cat.gif");
+	});
+
+	it("only replaces the last extension when the name has several dots", () => {
+		expect(toGifFilename("archive.tar.gz")).toBe("archive.tar.gif");
+	});
+
+	it("appends .gif when the source file has no extension", () => {
+		expect(toGifFilename("cat")).toBe("cat.gif");
+	});
+
+	it("falls back to a default name when no source file name is available", () => {
+		expect(toGifFilename(undefined)).toBe("pixel-art.gif");
 	});
 });
 

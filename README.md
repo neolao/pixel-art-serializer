@@ -18,6 +18,7 @@ A static website that takes an image and turns it into a JSON description of its
 - Manually merge two or more palette colors into one you choose, for cases where the automatic grouping isn't quite what you want. Every affected pixel switches to the merged color, reflected everywhere: the palette, the reconstruction, and the downloadable JSON.
 - Manually correct the detected grid: drag a resizable selection over the original image (or use the keyboard) and set the exact width/height in cells, to exclude an unwanted border or fix a wrong cell count. Confirming updates the reconstruction, palette, confidence verdict, and JSON immediately; a "Return to automatic detection" button undoes it at any time.
 - The downloaded JSON is self-describing: it carries a version number and a clear marker on its permanent transparent color, and comes with a written explanation of its shape plus a published schema so other programs can validate it automatically.
+- Download the result as a `.gif` image too, alongside the JSON. If the color palette is too large for GIF (over 256 colors), the option stays visible but explains why it can't be used for that image, while the JSON download keeps working. If a color can't be shown at its exact transparency in a GIF, a note says so, without affecting the JSON.
 <!-- vibe:end:features -->
 
 <!-- vibe:begin:install -->

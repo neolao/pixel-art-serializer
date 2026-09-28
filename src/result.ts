@@ -1,5 +1,6 @@
 import { fromHex8 } from "./color";
 import type { ConfidenceResult } from "./confidence";
+import { encodeGif, MAX_GIF_COLORS } from "./gif-encoder";
 import {
 	detectPixelGridSize,
 	type GridDetectionResult,
@@ -23,11 +24,14 @@ export interface ResultElements {
 	reconstructionCanvas: HTMLCanvasElement;
 	palette: HTMLElement;
 	downloadLink: HTMLAnchorElement;
+	gifDownloadLink: HTMLAnchorElement;
+	gifNote: HTMLElement;
 	confidence: HTMLElement;
 	gridSize: HTMLElement;
 }
 
 const DEFAULT_DOWNLOAD_FILENAME = "pixel-art.json";
+const DEFAULT_DOWNLOAD_FILENAME_GIF = "pixel-art.gif";
 
 export function resetResult(elements: ResultElements): void {
 	elements.reconstructionFigure.hidden = true;
@@ -35,6 +39,11 @@ export function resetResult(elements: ResultElements): void {
 	elements.palette.innerHTML = "";
 	elements.downloadLink.hidden = true;
 	elements.downloadLink.removeAttribute("href");
+	elements.gifDownloadLink.hidden = true;
+	elements.gifDownloadLink.removeAttribute("href");
+	elements.gifDownloadLink.removeAttribute("aria-disabled");
+	elements.gifNote.hidden = true;
+	elements.gifNote.textContent = "";
 	elements.confidence.hidden = true;
 	elements.confidence.textContent = "";
 	elements.gridSize.hidden = true;
@@ -185,6 +194,67 @@ export function toJsonFilename(sourceFileName: string | undefined): string {
 	const base =
 		dotIndex > 0 ? sourceFileName.slice(0, dotIndex) : sourceFileName;
 	return `${base}.json`;
+}
+
+/**
+ * Mirrors `renderDownloadLink` for a GIF built from the same reconstruction
+ * (see `.vibe/decisions/022-gif-export-via-omggif.md`), plus two states GIF
+ * needs and JSON doesn't: the palette may exceed GIF's 256-color limit (the
+ * link stays visible but disabled, with an explanation — JSON is unaffected),
+ * and a non-reserved semi-transparent color is always flattened to opaque
+ * for the GIF only (a standing, non-blocking note — see
+ * `.vibe/decisions/023-gif-export-flattens-non-reserved-alpha.md`).
+ */
+export function renderGifDownloadLink(
+	link: HTMLAnchorElement,
+	note: HTMLElement,
+	serialization: PixelArtSerialization,
+	sourceFileName: string | undefined,
+): void {
+	link.hidden = false;
+
+	if (serialization.palette.length > MAX_GIF_COLORS) {
+		link.removeAttribute("href");
+		link.removeAttribute("download");
+		link.setAttribute("aria-disabled", "true");
+		note.textContent = `This image's palette has ${serialization.palette.length} colors — GIF only supports up to ${MAX_GIF_COLORS}, so it can't be downloaded as a GIF here. The JSON download is unaffected.`;
+		note.hidden = false;
+		return;
+	}
+
+	const { bytes, hasFlattenedColor } = encodeGif(serialization);
+	link.removeAttribute("aria-disabled");
+	link.setAttribute("href", `data:image/gif;base64,${bytesToBase64(bytes)}`);
+	link.download = toGifFilename(sourceFileName);
+
+	if (hasFlattenedColor) {
+		note.textContent =
+			"A palette color isn't fully opaque; GIF can't represent that, so it's shown as a solid color here (the JSON download keeps its exact transparency).";
+		note.hidden = false;
+	} else {
+		note.textContent = "";
+		note.hidden = true;
+	}
+}
+
+export function toGifFilename(sourceFileName: string | undefined): string {
+	if (!sourceFileName) {
+		return DEFAULT_DOWNLOAD_FILENAME_GIF;
+	}
+	const dotIndex = sourceFileName.lastIndexOf(".");
+	const base =
+		dotIndex > 0 ? sourceFileName.slice(0, dotIndex) : sourceFileName;
+	return `${base}.gif`;
+}
+
+const BASE64_CHUNK_SIZE = 0x8000;
+
+function bytesToBase64(bytes: Uint8Array): string {
+	let binary = "";
+	for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
+		binary += String.fromCharCode(...bytes.subarray(i, i + BASE64_CHUNK_SIZE));
+	}
+	return btoa(binary);
 }
 
 function makeSwatch(

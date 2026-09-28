@@ -22,7 +22,7 @@ _Sources: `src/result.ts`, `src/reconstruction-editor.ts`_
 ## Reserved transparent color
 The color palette's first entry, always present and always fully transparent, regardless of whether the source image has any transparency of its own. Lets a person erase a reconstructed pixel to transparent even on a fully-opaque image. It can never be removed, changed to another color, or displaced from that position by another color.
 **Do not confuse with:** a color palette that happens to contain a transparent entry because the source image itself uses transparency — this one is always present on top of whatever the image actually contains.
-_Sources: `src/palette-extraction.ts`, `src/palette-editor.ts`_
+_Sources: `src/palette-extraction.ts`, `src/palette-editor.ts`, `src/gif-encoder.ts`_
 
 ## Manual grid adjustment
 Correcting the detected pixel grid by hand: dragging a resizable selection over the original image to pick which area is the real artwork (excluding, for example, a decorative border), and setting the exact width/height in logical pixels. Confirming it re-runs the palette, reconstruction, confidence verdict, and downloadable JSON on that chosen area and size instead of the automatically detected ones; a dedicated action reverts to the automatic result at any time.

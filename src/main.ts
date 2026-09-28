@@ -78,7 +78,11 @@ if (app) {
         <button id="add-color-button" type="button">Add color</button>
         <button id="merge-toggle-button" type="button">Merge colors</button>
       </p>
-      <a id="download-json" download hidden>Download JSON</a>
+      <p class="downloads">
+        <a id="download-json" download hidden>Download JSON</a>
+        <a id="download-gif" download hidden>Download GIF</a>
+      </p>
+      <p id="gif-note" role="status" hidden></p>
     </main>
   `;
 
@@ -93,6 +97,8 @@ if (app) {
 	);
 	const palette = app.querySelector<HTMLElement>("#palette");
 	const downloadLink = app.querySelector<HTMLAnchorElement>("#download-json");
+	const gifDownloadLink = app.querySelector<HTMLAnchorElement>("#download-gif");
+	const gifNote = app.querySelector<HTMLElement>("#gif-note");
 	const confidence = app.querySelector<HTMLElement>("#confidence");
 	const gridSize = app.querySelector<HTMLElement>("#grid-size");
 	const addColorInput = app.querySelector<HTMLInputElement>("#add-color-input");
@@ -139,6 +145,8 @@ if (app) {
 		reconstructionCanvas &&
 		palette &&
 		downloadLink &&
+		gifDownloadLink &&
+		gifNote &&
 		confidence &&
 		gridSize &&
 		addColorInput &&
@@ -160,6 +168,8 @@ if (app) {
 			reconstructionCanvas,
 			palette,
 			downloadLink,
+			gifDownloadLink,
+			gifNote,
 			confidence,
 			gridSize,
 		};
@@ -167,6 +177,8 @@ if (app) {
 			reconstructionCanvas,
 			palette,
 			downloadLink,
+			gifDownloadLink,
+			gifNote,
 			addColorInput,
 			addColorButton,
 			mergeToggleButton,

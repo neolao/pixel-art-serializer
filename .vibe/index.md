@@ -8,9 +8,10 @@
 - [`modules/palette-extraction.md`](modules/palette-extraction.md) — extracts and indexes an image's color palette from its detected grid, always reserving a transparent first entry
 - [`modules/serializer.md`](modules/serializer.md) — combines the detected grid and palette into one JSON description of the image
 - [`modules/confidence.md`](modules/confidence.md) — scores how likely an image is to actually be pixel art, from its grid regularity and palette size
-- [`modules/result.md`](modules/result.md) — runs the detection pipeline (automatic or from a manual crop + grid size) and renders the reconstructed image, its detected grid size, interactive color palette, JSON download link, and confidence verdict
+- [`modules/result.md`](modules/result.md) — runs the detection pipeline (automatic or from a manual crop + grid size) and renders the reconstructed image, its detected grid size, interactive color palette, JSON and GIF download links, and confidence verdict
 - [`modules/palette-editor.md`](modules/palette-editor.md) — pure add/remove/modify/recolor operations on an already-serialized result
 - [`modules/reconstruction-editor.md`](modules/reconstruction-editor.md) — wires manual palette and pixel editing to the screen, re-rendering on every edit
+- [`modules/gif-encoder.md`](modules/gif-encoder.md) — encodes a serialized result into real GIF89a file bytes for the GIF download
 - [`modules/image-crop.md`](modules/image-crop.md) — extracts a sub-rectangle of raw pixel data as its own standalone image
 - [`modules/grid-selection.md`](modules/grid-selection.md) — pure geometry for the manual grid's selection rectangle: resize, move, coordinate mapping
 - [`modules/manual-grid-editor.md`](modules/manual-grid-editor.md) — wires a draggable/resizable grid-selection overlay and a width/height form to the screen, for correcting the detected grid by hand
@@ -39,6 +40,8 @@
 - An interactive drag/resize UI element reports its result to the caller only once the gesture ends (pointerup, or a discrete keyboard nudge), never on every intermediate move, so a caller-side recompute isn't triggered continuously during a drag (`manual-grid-editor.ts`)
 - Drag/resize interactions are wired on Pointer Events (`pointerdown`/`pointermove`/`pointerup`), not Mouse Events, so the same listener handles mouse, touch, and pen without separate touch-event code — paired with `touch-action: none` on the draggable elements so a touch drag doesn't also scroll the page (`manual-grid-editor.ts`, `src/style.css`)
 - A resizable-rectangle-by-handle interaction keeps the edge opposite the dragged handle fixed and clamps the moving edge against that fixed edge and the container bounds, rather than clamping width/height after the fact, so a drag can never invert or collapse the rectangle (`grid-selection.ts`'s `resizeFromHandle`)
+- A file format with no browser-native encoding API and an easy-to-get-subtly-wrong bitstream (`gif-encoder.ts`'s GIF89a/LZW output) is built on a small, dependency-free third-party library instead of a hand-rolled encoder, so correctness can be checked in tests by decoding the output with that same library's independent reader rather than doubling the custom bitstream code (see `decisions/022-gif-export-via-omggif.md`)
+- When an app's own data model supports something a downstream export format cannot (per-color partial alpha vs. GIF's single binary-transparent index), the narrower format silently degrades the unsupported case (flattens to opaque) rather than failing the whole export, and a standing, non-blocking UI note names the discrepancy instead of leaving it undetectable (see `decisions/023-gif-export-flattens-non-reserved-alpha.md`)
 
 ## Other context files
 - [`models.md`](models.md) — data models

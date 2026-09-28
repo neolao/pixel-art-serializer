@@ -120,6 +120,8 @@ function makeEditorElements() {
 	})) as unknown as typeof reconstructionCanvas.getContext;
 	const palette = document.createElement("div");
 	const downloadLink = document.createElement("a");
+	const gifDownloadLink = document.createElement("a");
+	const gifNote = document.createElement("p");
 	const addColorInput = document.createElement("input");
 	addColorInput.type = "color";
 	const addColorButton = document.createElement("button");
@@ -128,6 +130,8 @@ function makeEditorElements() {
 		reconstructionCanvas,
 		palette,
 		downloadLink,
+		gifDownloadLink,
+		gifNote,
 		addColorInput,
 		addColorButton,
 		mergeToggleButton,
@@ -143,6 +147,24 @@ describe("createReconstructionEditor", () => {
 
 		expect(elements.palette.querySelectorAll(".swatch")).toHaveLength(3);
 		expect(elements.downloadLink.hidden).toBe(false);
+		expect(elements.gifDownloadLink.hidden).toBe(false);
+	});
+
+	it("keeps the GIF download link in sync after a manual pixel edit", () => {
+		const elements = makeEditorElements();
+		const editor = createReconstructionEditor(elements);
+		editor.load(makeSerialization(), "cat.png");
+		const hrefBeforeEdit = elements.gifDownloadLink.getAttribute("href");
+
+		const greenBox = [...elements.palette.querySelectorAll(".swatch-box")][2];
+		(greenBox as HTMLElement).click();
+		elements.reconstructionCanvas.dispatchEvent(
+			new MouseEvent("click", { clientX: 5, clientY: 5, bubbles: true }),
+		);
+
+		expect(elements.gifDownloadLink.getAttribute("href")).not.toBe(
+			hrefBeforeEdit,
+		);
 	});
 
 	it("selects a color on swatch click, then paints a clicked pixel with it, reflected in the downloaded JSON", () => {

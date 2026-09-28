@@ -63,6 +63,13 @@ Defined in: `src/serializer.ts`. This is the exact shape of the file downloaded 
 | height | number | must be ≥ 1 after rounding, and fit within the image bounds |
 Defined in: `src/image-crop.ts`. `src/grid-selection.ts`'s `SelectionRect` is the same shape, used for the live, in-progress selection state rather than a validated crop instruction — the two are structurally interchangeable but named for their distinct roles.
 
+## GifEncodingResult
+| Field | Type | Notes |
+|---|---|---|
+| bytes | Uint8Array | the encoded GIF89a file content |
+| hasFlattenedColor | boolean | `true` when a non-reserved color with partial alpha had to be written fully opaque (GIF has no partial transparency) |
+Defined in: `src/gif-encoder.ts`
+
 ## ConfidenceResult
 | Field | Type | Notes |
 |---|---|---|
