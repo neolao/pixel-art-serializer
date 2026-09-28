@@ -1,0 +1,33 @@
+{
+	"formatVersion": 1,
+	"gridWidth": 15,
+	"gridHeight": 15,
+	"palette": [
+		{ "index": 0, "color": "#00000000", "reserved": true },
+		{ "index": 1, "color": "#725d59ff", "reserved": false },
+		{ "index": 2, "color": "#daab9aff", "reserved": false },
+		{ "index": 3, "color": "#ffe7ccff", "reserved": false },
+		{ "index": 4, "color": "#fbb66eff", "reserved": false },
+		{ "index": 5, "color": "#eac6a4ff", "reserved": false },
+		{ "index": 6, "color": "#370e00ff", "reserved": false },
+		{ "index": 7, "color": "#a66931ff", "reserved": false },
+		{ "index": 8, "color": "#fff5ebff", "reserved": false },
+		{ "index": 9, "color": "#372317ff", "reserved": false },
+		{ "index": 10, "color": "#7d5340ff", "reserved": false },
+		{ "index": 11, "color": "#e6bb7cff", "reserved": false },
+		{ "index": 12, "color": "#080207ff", "reserved": false }
+	],
+	"pixels": [
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 12, 12, 0, 0, 0, 0, 0, 12, 12, 12, 12,
+		12, 12, 1, 1, 1, 12, 0, 0, 0, 0, 12, 2, 11, 2, 2, 2, 12, 10, 10, 12, 0, 0,
+		0, 0, 12, 2, 11, 11, 11, 11, 11, 2, 1, 12, 0, 0, 0, 0, 0, 12, 11, 11, 3, 3,
+		11, 4, 11, 12, 12, 0, 0, 0, 0, 0, 12, 2, 3, 12, 12, 3, 11, 4, 5, 12, 0, 0,
+		0, 0, 0, 12, 2, 3, 12, 12, 3, 11, 4, 11, 12, 0, 0, 0, 0, 12, 1, 10, 2, 3, 3,
+		2, 11, 11, 11, 12, 0, 0, 0, 0, 12, 1, 6, 2, 11, 2, 11, 11, 7, 7, 1, 12, 0,
+		0, 0, 0, 12, 2, 2, 11, 11, 11, 7, 10, 10, 10, 1, 12, 0, 0, 0, 12, 8, 3, 11,
+		4, 11, 10, 1, 10, 10, 1, 12, 12, 0, 0, 12, 8, 8, 3, 11, 11, 6, 1, 10, 10, 1,
+		1, 12, 0, 0, 0, 12, 8, 3, 11, 2, 2, 6, 10, 10, 1, 6, 1, 0, 0, 0, 0, 12, 12,
+		9, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0,
+		0
+	]
+}
